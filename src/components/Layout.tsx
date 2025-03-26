@@ -4,12 +4,13 @@ import NavigationMenu from './navigation/NavigationMenu';
 import Header from './navigation/Header';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleNavigation = (path: string) => {
     navigate(path);
+    setIsSidebarOpen(false);
   };
 
   // Handle sidebar close event
@@ -18,25 +19,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       setIsSidebarOpen(false);
     };
 
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(true);
-      } else {
-        setIsSidebarOpen(false);
-      }
-    };
-
     window.addEventListener('closeSidebar', handleCloseSidebar);
-    window.addEventListener('resize', handleResize);
-
-    // Initial check
-    handleResize();
-
     return () => {
       window.removeEventListener('closeSidebar', handleCloseSidebar);
-      window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  // Check if we're on the landing page
+  const isLandingPage = location.pathname === '/';
+
+  // If we're on the landing page, only render the children without the layout
+  if (isLandingPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -45,7 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         setIsSidebarOpen={setIsSidebarOpen}
       />
 
-      <div className="flex pt-14">
+      <div className="flex flex-col lg:flex-row pt-14">
         <NavigationMenu
           isSidebarOpen={isSidebarOpen}
           currentPath={location.pathname}
@@ -53,8 +48,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 transition-all duration-300 ease-in-out">
-          <div className="animate-fadeIn">
+        <main className="flex-1 p-4 md:p-6 transition-all duration-300 ease-in-out w-full">
+          <div className="max-w-7xl mx-auto animate-fadeIn">
             {children}
           </div>
         </main>

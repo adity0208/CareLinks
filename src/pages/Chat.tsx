@@ -1,4 +1,3 @@
-import React from 'react';
 import ChatInterface from '../components/Chat/ChatInterface';
 import { mockChatMessages } from '../data/mockData';
 

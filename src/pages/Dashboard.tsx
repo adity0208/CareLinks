@@ -1,4 +1,3 @@
-import React from 'react';
 import AnalyticsCard from '../components/Dashboard/AnalyticsCard';
 import PatientCard from '../components/Dashboard/PatientCard';
 import AppointmentList from '../components/Dashboard/AppointmentList';

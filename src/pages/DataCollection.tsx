@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FileSpreadsheet, Loader } from 'lucide-react';
+import { PatientData } from '../services/firebase/firestore';
 
 interface DataCollectionProps {
-  onPatientAdd: (newPatient: any) => void;
+  onPatientAdd: (newPatient: Omit<PatientData, 'id' | 'createdAt'>) => void;
 }
 
 export default function DataCollection({ onPatientAdd }: DataCollectionProps) {
@@ -10,8 +11,12 @@ export default function DataCollection({ onPatientAdd }: DataCollectionProps) {
     patientName: '',
     age: '',
     gender: '',
-    healthStatus: '',
-    mobileNumber: '',
+    symptoms: '', // Added symptoms field
+    bloodPressure: '', // Added bloodPressure field
+    temperature: '', // Added temperature field
+    heartRate: '', // Added heartRate field
+    notes: '', // Added notes field
+    mobileNumber: '', // Added mobileNumber field
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -19,35 +24,44 @@ export default function DataCollection({ onPatientAdd }: DataCollectionProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    // Create a PatientData object from the form values
+    const patientData: Omit<PatientData, 'id' | 'createdAt'> = {
+      name: formData.patientName,
+      age: parseInt(formData.age),
+      gender: formData.gender,
+      symptoms: formData.symptoms.split(',').map((s) => s.trim()), // Corrected mapping
+      vitalSigns: {
+        bloodPressure: formData.bloodPressure, // Corrected mapping
+        temperature: parseFloat(formData.temperature), // Corrected mapping
+        heartRate: parseInt(formData.heartRate), // Corrected mapping
+      },
+      notes: formData.notes, // Corrected mapping
+      mobileNumber: formData.mobileNumber, // Corrected mapping
+    };
 
     try {
-      // Create a new patient object from the form data
-      const newPatient = {
-        id: Math.random().toString(36).substring(7), // Generate a random ID
-        name: formData.patientName,
-        age: parseInt(formData.age),
-        gender: formData.gender,
-        healthStatus: formData.healthStatus,
-        contactNumber: formData.mobileNumber,
-      };
-
-      // Call the onPatientAdd callback to update the patient list in the Patients component
-      if (typeof onPatientAdd === 'function') {
-        onPatientAdd(newPatient);
-      } else {
-        console.error('onPatientAdd is not a function!');
-      }
-
+      // Save the patient data to Firestore
+      await onPatientAdd(patientData);
+      console.log('Patient data saved successfully!');
       setSubmitStatus('success');
+      // Reset the form
       setFormData({
         patientName: '',
         age: '',
         gender: '',
-        healthStatus: '',
-        mobileNumber: '',
+        symptoms: '',
+        bloodPressure: '',
+        temperature: '',
+        heartRate: '',
+        notes: '',
+        mobileNumber: '', // Added mobileNumber
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error saving patient data:', error.message);
       setSubmitStatus('error');
+      // Display an error message to the user
     } finally {
       setIsSubmitting(false);
     }
@@ -115,20 +129,71 @@ export default function DataCollection({ onPatientAdd }: DataCollectionProps) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Health Status
+            Symptoms
           </label>
-          <select
-            name="healthStatus"
-            value={formData.healthStatus}
+          <input
+            type="text"
+            name="symptoms"
+            value={formData.symptoms}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
-          >
-            <option value="">Select Health Status</option>
-            <option value="stable">Stable</option>
-            <option value="pendingVaccination">Pending Vaccination</option>
-            <option value="critical">Critical</option>
-          </select>
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Blood Pressure
+          </label>
+          <input
+            type="text"
+            name="bloodPressure"
+            value={formData.bloodPressure}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Temperature
+          </label>
+          <input
+            type="number"
+            name="temperature"
+            value={formData.temperature}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Heart Rate
+          </label>
+          <input
+            type="number"
+            name="heartRate"
+            value={formData.heartRate}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Notes
+          </label>
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
         </div>
 
         <div>
@@ -136,7 +201,7 @@ export default function DataCollection({ onPatientAdd }: DataCollectionProps) {
             Mobile Number
           </label>
           <input
-            type="tel"
+            type="text"
             name="mobileNumber"
             value={formData.mobileNumber}
             onChange={handleInputChange}
