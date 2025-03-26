@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart2, TrendingUp, Users, Clock } from 'lucide-react';
 import { AnalyticsData } from '../../types';
 
