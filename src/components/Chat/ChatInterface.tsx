@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChatMessage } from '../../types';
 import { Send, Bot } from 'lucide-react';
 import { generateChatResponse } from '../../services/mockAI';
