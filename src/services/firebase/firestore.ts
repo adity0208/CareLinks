@@ -9,7 +9,7 @@ import {
     updateDoc,
     deleteDoc,
     Timestamp,
-    FirestoreError // Import FirestoreError
+    FirestoreError
 } from 'firebase/firestore';
 
 // Patient data structure
@@ -27,6 +27,7 @@ export interface PatientData {
     notes: string;
     mobileNumber: string;
     createdAt?: Date | null;
+    hasAppointment?: boolean;
 }
 
 // Reference to the Firestore 'patients' collection
@@ -45,24 +46,22 @@ class FirestoreService {
         return FirestoreService.instance;
     }
 
-    // Save patient data to Firestore
     async savePatientData(data: Omit<PatientData, 'id' | 'createdAt'>): Promise<string> {
         try {
-            console.log('Attempting to save patient data:', data); // Debug log
+            console.log('Attempting to save patient data:', data);
             const docRef = await addDoc(collection(db, this.COLLECTION_NAME), {
                 ...data,
-                createdAt: new Date() // Save the current timestamp
+                createdAt: new Date()
             });
 
-            console.log('Patient data saved to Firestore with ID:', docRef.id); // Success log
+            console.log('Patient data saved to Firestore with ID:', docRef.id);
             return docRef.id;
         } catch (error: any) {
-            console.error('Error saving patient data to Firestore:', error); // Error details
-            throw error; // Re-throw the original error
+            console.error('Error saving patient data to Firestore:', error);
+            throw error;
         }
     }
 
-    // Helper function to transform Firestore data to PatientData
     private transformPatientData(doc: any): PatientData {
         const data = doc.data();
         const createdAt = data['createdAt'] as Timestamp;
@@ -74,9 +73,9 @@ class FirestoreService {
             gender: data['gender'],
             symptoms: data['symptoms'],
             vitalSigns: {
-                bloodPressure: data['vitalSigns']?.bloodPressure || '',
-                temperature: data['vitalSigns']?.temperature || 0,
-                heartRate: data['vitalSigns']?.heartRate || 0,
+                bloodPressure: data['vitalSigns'] ? data['vitalSigns']?.bloodPressure || '' : '',
+                temperature: data['vitalSigns'] ? data['vitalSigns']?.temperature || 0 : 0,
+                heartRate: data['vitalSigns'] ? data['vitalSigns']?.heartRate || 0 : 0,
             },
             notes: data['notes'],
             mobileNumber: data['mobileNumber'],
@@ -84,57 +83,110 @@ class FirestoreService {
         } as PatientData;
     }
 
-    // Fetch patient data from Firestore
     async getPatientData(): Promise<PatientData[]> {
         try {
-            console.log('Fetching patient data from Firestore...'); // Debug log
+            console.log('Fetching patient data from Firestore...');
             const q = query(
                 collection(db, this.COLLECTION_NAME),
-                orderBy('createdAt', 'desc') // Order by creation time
+                orderBy('createdAt', 'desc')
             );
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                console.warn('No patient data found in Firestore.'); // Handle empty collection
+                console.warn('No patient data found in Firestore.');
                 return [];
             }
 
             const patients: PatientData[] = querySnapshot.docs.map(doc => this.transformPatientData(doc));
 
-            console.log('Fetched patient data successfully:', patients); // Final success log
+            console.log('Fetched patient data successfully:', patients);
             return patients;
         } catch (error: any) {
-            console.error('Error fetching patient data from Firestore:', error); // Error details
-            throw error; // Re-throw the original error
+            console.error('Error fetching patient data from Firestore:', error);
+            throw error;
         }
     }
 
-    // Update existing patient data
     async updatePatientData(id: string, data: Omit<PatientData, 'id' | 'createdAt'>): Promise<void> {
         try {
-            console.log(`Updating patient data with ID: ${id}`, data); // Debug log
+            console.log(`Updating patient data with ID: ${id}`, data);
             const patientDocRef = doc(db, this.COLLECTION_NAME, id);
             await updateDoc(patientDocRef, data);
-            console.log('Patient data updated in Firestore:', data); // Success log
+            console.log('Patient data updated in Firestore:', data);
         } catch (error: any) {
-            console.error('Error updating patient data in Firestore:', error.message); // Error details
-            throw error; // Re-throw the original error
+            console.error('Error updating patient data in Firestore:', error.message);
+            throw error;
         }
     }
 
-    // Delete patient data
     async deletePatientData(id: string): Promise<void> {
         try {
-            console.log(`Deleting patient data with ID: ${id}`); // Debug log
+            console.log(`Deleting patient data with ID: ${id}`);
             const patientDocRef = doc(db, this.COLLECTION_NAME, id);
             await deleteDoc(patientDocRef);
-            console.log('Patient data deleted from Firestore:', id); // Success log
+            console.log('Patient data deleted from Firestore:', id);
         } catch (error: any) {
-            console.error('Error deleting patient data from Firestore:', error); // Error details
-            throw error; // Re-throw the original error
+            console.error('Error deleting patient data from Firestore:', error);
+            throw error;
+        }
+    }
+
+    async getAppointmentData(): Promise<AppointmentData[]> {
+        try {
+            console.log('Fetching appointment data from Firestore...');
+            const q = query(collection(db, "appointments"), orderBy('appointmentDate', 'desc'));
+            const querySnapshot = await getDocs(q);
+
+            const appointments: AppointmentData[] = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                let appointmentDate: Date;
+
+                if (data.appointmentDate instanceof Timestamp) {
+                    appointmentDate = data.appointmentDate.toDate();
+                } else if (data.appointmentDate instanceof Date) {
+                    appointmentDate = data.appointmentDate;
+                } else {
+                    console.error('Invalid appointmentDate format:', data.appointmentDate);
+                    throw new Error('Invalid appointmentDate format in Firestore');
+                }
+
+                return {
+                    patientId: data.patientId,
+                    patientName: data.patientName,
+                    appointmentDate: appointmentDate,
+                    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt || null,
+                };
+            });
+
+            console.log('Fetched appointment data successfully:', appointments);
+            return appointments;
+        } catch (error: any) {
+            console.error('Error fetching appointment data from Firestore:', error);
+            throw error;
+        }
+    }
+
+    async saveAppointmentData(data: AppointmentData): Promise<string> {
+        try {
+            console.log('Attempting to save appointment data:', data);
+            const docRef = await addDoc(collection(db, "appointments"), {
+                ...data,
+                createdAt: new Date()
+            });
+            console.log('Appointment data saved to Firestore with ID:', docRef.id);
+            return docRef.id;
+        } catch (error: any) {
+            console.error('Error saving appointment data to Firestore:', error);
+            throw error;
         }
     }
 }
 
-// Export singleton instance
 export const firestoreService = FirestoreService.getInstance();
+
+export interface AppointmentData {
+    patientId: string;
+    patientName: string;
+    appointmentDate: Date;
+    createdAt?: Date;
+}
