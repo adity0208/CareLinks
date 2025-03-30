@@ -48,7 +48,7 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
           <Bot className="w-5 h-5 text-blue-600" />
           <div>
             <h2 className="text-lg font-semibold">AI Health Assistant</h2>
-            <p className="text-sm text-gray-600">Powered by Google Gemini (Mock)</p>
+            <p className="text-sm text-gray-600">Powered by Google Gemini </p>
           </div>
         </div>
       </div>

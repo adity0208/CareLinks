@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Patient } from '../../types';
 import { AlertCircle, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { generateRiskAssessment } from '../../services/mockAI';
