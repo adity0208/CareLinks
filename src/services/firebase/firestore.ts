@@ -11,6 +11,7 @@ import {
     Timestamp,
     FirestoreError
 } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid
 
 // Patient data structure
 export interface PatientData {
@@ -151,6 +152,7 @@ class FirestoreService {
                 }
 
                 return {
+                    id: data.id, // Get the ID from Firestore
                     patientId: data.patientId,
                     patientName: data.patientName,
                     appointmentDate: appointmentDate,
@@ -166,17 +168,84 @@ class FirestoreService {
         }
     }
 
-    async saveAppointmentData(data: AppointmentData): Promise<string> {
+    async saveAppointmentData(data: Omit<AppointmentData, 'id' | 'createdAt'>): Promise<string> {
         try {
             console.log('Attempting to save appointment data:', data);
+            const id = uuidv4(); // Generate a unique ID
             const docRef = await addDoc(collection(db, "appointments"), {
+                id: id, // Save the ID to Firestore
                 ...data,
                 createdAt: new Date()
             });
             console.log('Appointment data saved to Firestore with ID:', docRef.id);
-            return docRef.id;
+            return id; // Return the generated ID
         } catch (error: any) {
             console.error('Error saving appointment data to Firestore:', error);
+            throw error;
+        }
+    }
+
+    async getPatientDataForAnalytics(): Promise<PatientData[]> {
+        try {
+            console.log('Fetching patient data for analytics from Firestore...');
+            const patientCollection = collection(db, 'patients');
+            const querySnapshot = await getDocs(query(patientCollection));
+
+            const patients: PatientData[] = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    name: data.name,
+                    age: data.age,
+                    gender: data.gender,
+                    medicalHistory: data.medicalHistory || [],
+                    symptoms: data.symptoms || [],
+                    vitalSigns: data.vitalSigns || { bloodPressure: '', temperature: '', heartRate: '' },
+                    notes: data.notes || '',
+                    mobileNumber: data.mobileNumber,
+                };
+            });
+
+            console.log('Fetched patient data for analytics successfully:', patients);
+            return patients;
+        } catch (error: any) {
+            console.error('Error fetching patient data for analytics from Firestore:', error);
+            throw error;
+        }
+    }
+
+    async getAppointmentDataForAnalytics(): Promise<AppointmentData[]> {
+        try {
+            console.log('Fetching appointment data for analytics from Firestore...');
+            const appointmentCollection = collection(db, 'appointments');
+            const querySnapshot = await getDocs(query(appointmentCollection));
+
+            const appointments: AppointmentData[] = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                let appointmentDate: Date;
+
+                if (data.appointmentDate instanceof Timestamp) {
+                    appointmentDate = data.appointmentDate.toDate();
+                } else if (data.appointmentDate instanceof Date) {
+                    appointmentDate = data.appointmentDate;
+                } else {
+                    console.error('Invalid appointmentDate format:', data.appointmentDate);
+                    throw new Error('Invalid appointmentDate format in Firestore');
+                }
+
+                return {
+                    id: doc.id,
+                    patientId: data.patientId,
+                    patientName: data.patientName,
+                    appointmentDate: appointmentDate,
+                    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt || null,
+                };
+            });
+
+            console.log('Fetched appointment data for analytics successfully:', appointments);
+            return appointments;
+        } catch (error: any) {
+            console.error('Error fetching appointment data for analytics from Firestore:', error);
             throw error;
         }
     }
@@ -185,6 +254,7 @@ class FirestoreService {
 export const firestoreService = FirestoreService.getInstance();
 
 export interface AppointmentData {
+    id: string; // Add this line
     patientId: string;
     patientName: string;
     appointmentDate: Date;

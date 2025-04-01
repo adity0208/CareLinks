@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { firestoreService, AppointmentData } from '../services/firebase/firestore';
-import { Timestamp } from 'firebase/firestore'; // Import Timestamp
+import { Timestamp } from 'firebase/firestore';
+import { CalendarDays, UserRound, Clock4 } from 'lucide-react'; // Import icons
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState<AppointmentData[]>([]);
@@ -12,11 +13,10 @@ export default function Appointments() {
       setLoading(true);
       try {
         const data = await firestoreService.getAppointmentData();
-        // Convert Timestamp to Date
         const convertedData = data.map((appointment) => ({
           ...appointment,
-          appointmentDate: appointment.appointmentDate instanceof Timestamp 
-            ? appointment.appointmentDate.toDate() 
+          appointmentDate: appointment.appointmentDate instanceof Timestamp
+            ? appointment.appointmentDate.toDate()
             : appointment.appointmentDate,
         }));
         setAppointments(convertedData);
@@ -32,29 +32,58 @@ export default function Appointments() {
     fetchAppointmentData();
   }, []);
 
-  if (loading) return <p>Loading appointments...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen">
+      <p className="text-lg text-gray-600">Loading appointments...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex items-center justify-center h-screen">
+      <p className="text-red-600">Error: {error}</p>
+    </div>
+  );
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Appointments</h1>
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <div className="flex items-center space-x-2 mb-6">
+        <CalendarDays className="w-6 h-6 text-blue-600" />
+        <h1 className="text-2xl font-bold">Appointments</h1>
+      </div>
+
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
-          <thead className="bg-gray-100">
+        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="py-2 px-4 border-b">Patient Name</th>
-              <th className="py-2 px-4 border-b">Appointment Date</th>
-              {/* Add other relevant columns */}
+              <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-700">
+                <div className="flex items-center space-x-1">
+                  <UserRound className="w-4 h-4" />
+                  <span>Patient Name</span>
+                </div>
+              </th>
+              <th className="py-3 px-4 border-b text-left text-sm font-semibold text-gray-700">
+                <div className="flex items-center space-x-1">
+                  <Clock4 className="w-4 h-4" />
+                  <span>Appointment Date</span>
+                </div>
+              </th>
+              {/* Add other relevant columns with icons */}
             </tr>
           </thead>
           <tbody>
             {appointments.map((appointment) => (
-              <tr key={appointment.patientId} className="hover:bg-gray-50">
-                <td className="py-2 px-4 border-b">{appointment.patientName}</td>
-                <td className="py-2 px-4 border-b">
-                  {appointment.appointmentDate.toLocaleDateString()}
+              <tr key={appointment.id} className="hover:bg-gray-100 transition-colors duration-200">
+                <td className="py-3 px-4 border-b text-sm text-gray-800">
+                  {appointment.patientName}
                 </td>
-                {/* Add other relevant cells */}
+                <td className="py-3 px-4 border-b text-sm text-gray-800">
+                  {appointment.appointmentDate.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </td>
+                {/* Add other relevant columns data */}
               </tr>
             ))}
           </tbody>

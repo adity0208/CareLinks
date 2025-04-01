@@ -1,4 +1,3 @@
-import React from 'react';
 import { Patient } from '../../types';
 import { 
   User, Calendar, Clock, AlertCircle, 

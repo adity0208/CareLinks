@@ -23,3 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Workbox and Service Worker files
+dev-dist/workbox-*.js
+dev-dist/sw.js
+public/sw.js
+public/registerSW.js
+public/manifest.webmanifest
+public/manifest.json
+src/serviceWorkerRegistration.ts

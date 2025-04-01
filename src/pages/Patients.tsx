@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RiWhatsappFill } from 'react-icons/ri';
 import { PatientData, firestoreService, AppointmentData } from '../services/firebase/firestore';
-import { RefreshCw } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -19,8 +18,8 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [refresh, setRefresh] = useState(false);
-  const [loading, setLoading] = useState(initialLoading); // Use local loading state
-  const [error, setError] = useState(initialError); // Use local error state
+  const [loading, setLoading] = useState(initialLoading);
+  const [error, setError] = useState(initialError);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<PatientData | null>(null);
@@ -31,10 +30,10 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
       try {
         const data = await firestoreService.getPatientData();
         setPatientData(data);
-        setError(null); // Clear any previous errors
+        setError(null);
       } catch (err: any) {
-        console.error("Error fetching patient data:", err);
-        setError("Failed to fetch patient data."); // Set the error state
+        console.error('Error fetching patient data:', err);
+        setError('Failed to fetch patient data.');
       } finally {
         setLoading(false);
       }
@@ -44,7 +43,7 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
   }, [refresh]);
 
   const handleRefresh = () => {
-    setRefresh(prev => !prev);
+    setRefresh((prev) => !prev);
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,23 +87,20 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
     }
 
     try {
-      // Create appointment data
       const appointmentData: AppointmentData = {
+        id: '',
         patientId: selectedPatient.id,
         patientName: selectedPatient.name,
-        appointmentDate: selectedDate, // Use the selected date
+        appointmentDate: selectedDate,
       };
 
-      // Save appointment data to Firestore
       await firestoreService.saveAppointmentData(appointmentData);
+      await firestoreService.updatePatientData(selectedPatient.id, {
+        ...selectedPatient,
+        hasAppointment: true,
+      });
 
-      // Update patient data in Firestore
-      await firestoreService.updatePatientData(selectedPatient.id, { ...selectedPatient, hasAppointment: true });
-
-      // Refresh patient data
-      setRefresh(prev => !prev);
-
-      console.log('Appointment scheduled successfully!');
+      setRefresh((prev) => !prev);
       setShowDatePicker(false);
       setSelectedPatient(null);
       setSelectedDate(null);
@@ -134,8 +130,8 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
     })
     .sort((a, b) => {
       if (sortBy === 'name') {
-        const nameA = a.name?.toUpperCase() || ''; // Handle potential null/undefined
-        const nameB = b.name?.toUpperCase() || ''; // Handle potential null/undefined
+        const nameA = a.name?.toUpperCase() || '';
+        const nameB = b.name?.toUpperCase() || '';
         if (nameA < nameB) {
           return sortOrder === 'asc' ? -1 : 1;
         }
@@ -156,134 +152,101 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
   const totalPages = Math.ceil(filteredPatients.length / rowsPerPage);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Patient Management</h1>
+    <div className="container mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h1 className="text-3xl font-bold mb-6 text-blue-700">Patient Management</h1>
 
-      <div className="mb-4">
-        <p>Total Patients: {patientData.length}</p>
-      </div>
-
-      <div className="flex items-center justify-between mb-4">
-        <input
-          type="text"
-          placeholder="Search by Name, ID, Contact"
-          className="border rounded p-2 w-1/3" // Adjust width as needed
-          onChange={handleSearch}
-        />
-        <div className="flex items-center">
-          <select className="border rounded p-2 mr-2" onChange={handleFilter}>
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-gray-600">Total Patients: {patientData.length}</p>
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            placeholder="Search..."
+            className="border rounded p-2 w-64"
+            onChange={handleSearch}
+          />
+          <select className="border rounded p-2" onChange={handleFilter}>
             <option value="">All</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
             Export
           </button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-gray-200 sticky top-0">
+        <table className="min-w-full table-auto rounded-lg overflow-hidden">
+          <thead className="bg-gray-100 sticky top-0">
             <tr>
-              <th className="px-4 py-2">Patient ID</th>
-              <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('name')}>Name</th>
-              <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('age')}>Age</th>
-              <th className="px-4 py-2">Gender</th>
-              <th className="px-4 py-2">Symptoms</th>
-              <th className="px-4 py-2">Blood Pressure</th>
-              <th className="px-4 py-2">Temperature</th>
-              <th className="px-4 py-2">Heart Rate</th>
-              <th className="px-4 py-2">Notes</th>
-              <th className="px-4 py-2">Actions</th>
-              <th className="px-4 py-2">Appointment</th> {/* New column */}
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Patient ID</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer" onClick={() => handleSort('name')}>Name</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer" onClick={() => handleSort('age')}>Age</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Gender</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Symptoms</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Blood Pressure</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Temperature</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Heart Rate</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Notes</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Appointment</th>
             </tr>
           </thead>
           <tbody>
             {loading && <tr><td colSpan={11} className="text-center py-4">Loading...</td></tr>}
             {error && <tr><td colSpan={11} className="text-center py-4 text-red-500">Error: {error}</td></tr>}
-            {!loading && !error && (
-              paginatedPatients.map((patient) => (
-                <tr key={patient.id}>
-                  <td className="border px-4 py-2">{patient.id}</td>
-                  <td className="border px-4 py-2">{patient.name}</td>
-                  <td className="border px-4 py-2">{patient.age}</td>
-                  <td className="border px-4 py-2">{patient.gender}</td>
-                  <td className="border px-4 py-2">{patient.symptoms?.join(', ') || ''}</td> {/* Handle potential null/undefined */}
-                  <td className="border px-4 py-2">{patient.vitalSigns?.bloodPressure}</td>
-                  <td className="border px-4 py-2">{patient.vitalSigns?.temperature}</td>
-                  <td className="border px-4 py-2">{patient.vitalSigns?.heartRate}</td>
-                  <td className="border px-4 py-2">{patient.notes}</td>
-                  <td className="border px-4 py-2">
-                    <a href={`https://wa.me/91${patient.mobileNumber}`} target="_blank" rel="noopener noreferrer">
-                      <RiWhatsappFill className="inline-block mr-2 text-green-500" size={20} />
-                    </a>
-                  </td>
-                  <td className="border px-4 py-2">
-                    <button
-                      className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                      onClick={() => handleAppointmentButtonClick(patient)}
-                    >
-                      Appointment
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
+            {!loading && !error && paginatedPatients.map((patient) => (
+              <tr key={patient.id} className="hover:bg-gray-50 transition-colors duration-200">
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.id}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.name}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.age}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.gender}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.symptoms?.join(', ') || ''}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.vitalSigns?.bloodPressure ?? ''}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.vitalSigns?.temperature ?? ''}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.vitalSigns?.heartRate ?? ''}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">{patient.notes}</td>
+                <td className="border px-4 py-3 text-sm text-gray-800">
+                  <a href={`https://wa.me/91${patient.mobileNumber}`} target="_blank" rel="noopener noreferrer">
+                    <RiWhatsappFill className="inline-block mr-2 text-green-500" size={20} />
+                  </a>
+                </td>
+                <td className="border px-4 py-3 text-sm text-gray-800">
+                  <button
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+                    onClick={() => handleAppointmentButtonClick(patient)}
+                  >
+                    Appointment
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <select className="border rounded p-2" onChange={handleRowsPerPageChange}>
-            <option value="25">25 rows</option>
-            <option value="50">50 rows</option>
-            <option value="100">100 rows</option>
-          </select>
-        </div>
-        <div>
-          <button
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l"
-            onClick={handlePreviousPage}
-            disabled={page === 1}
-          >
-            Previous
-          </button>
-          <span className="mx-2">Page {page} of {totalPages}</span>
-          <button
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r"
-            onClick={handleNextPage}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
+      <div className="flex items-center justify-between mt-6">
+        <select className="border rounded p-2" onChange={handleRowsPerPageChange}>
+          <option value="25">25 rows</option>
+          <option value="50">50 rows</option>
+          <option value="100">100 rows</option>
+        </select>
+        <div className="flex space-x-2">
+          <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-l" onClick={handlePreviousPage} disabled={page === 1}>Previous</button>
+          <span className="text-gray-700">Page {page} of {totalPages}</span>
+          <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-r" onClick={handleNextPage} disabled={page === totalPages}>Next</button>
         </div>
       </div>
 
       {showDatePicker && (
-        <div className="fixed top-0 left-0 w-full h-full bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-lg">
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold mb-4">Select Appointment Date</h2>
-            <DatePicker
-              selected={selectedDate}
-              onChange={handleDateChange}
-              inline
-            />
+            <DatePicker selected={selectedDate} onChange={handleDateChange} inline />
             <div className="flex justify-end mt-4">
-              <button
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-                onClick={() => setShowDatePicker(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                onClick={handleScheduleAppointment}
-              >
-                Schedule
-              </button>
+              <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded mr-2" onClick={() => setShowDatePicker(false)}>Cancel</button>
+              <button className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded" onClick={handleScheduleAppointment}>Schedule</button>
             </div>
           </div>
         </div>
