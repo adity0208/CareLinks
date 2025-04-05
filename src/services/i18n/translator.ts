@@ -1,28 +1,43 @@
+// services/i18n/translator.ts
 import { TranslationResponse } from '../../types/i18n';
 
-// Mock Google Cloud Translation API
 export async function translateText(
   text: string,
   targetLanguage: string,
-  sourceLanguage?: string
+  sourceLanguage = 'en'
 ): Promise<TranslationResponse> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const apiKey = import.meta.env.VITE_GOOGLE_TRANSLATION_API_KEY;
 
-  // Mock translations for demo purposes
-  const mockTranslations: Record<string, Record<string, string>> = {
-    'Hello! How can I assist you with patient care today?': {
-      hi: 'नमस्ते! आज मैं आपकी मरीज़ की देखभाल में कैसे मदद कर सकता हूं?',
-      bn: 'হ্যালো! আজ আমি রোগীর যত্নে আপনাকে কীভাবে সহায়তা করতে পারি?',
-      ta: 'வணக்கம்! இன்று நோயாளி பராமரிப்பில் நான் உங்களுக்கு எவ்வாறு உதவ முடியும்?'
+  if (!apiKey) {
+    throw new Error('Google Translation API key is missing.');
+  }
+
+  const response = await fetch(
+    `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q: text,
+        target: targetLanguage,
+        source: sourceLanguage,
+      }),
     }
-  };
+  );
+
+  const data = await response.json();
+
+  if (!response.ok || data.error) {
+    throw new Error(
+      `Translation API Error: ${data.error?.message || 'Unknown error'}`
+    );
+  }
 
   return {
-    translatedText: mockTranslations[text]?.[targetLanguage] || text,
+    translatedText: data.data.translations[0].translatedText,
     detectedLanguage: {
-      code: sourceLanguage || 'en',
-      confidence: 0.95
-    }
+      code: data.data.translations[0].detectedSourceLanguage || sourceLanguage,
+      confidence: 0.95, // Still mocked as the API doesn't return confidence
+    },
   };
 }

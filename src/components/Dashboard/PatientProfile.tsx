@@ -1,7 +1,7 @@
 import { Patient } from '../../types';
 import { 
-  User, Calendar, Clock, AlertCircle, 
-  Heart, Activity, Phone, Mail 
+  User, Calendar, Clock, 
+  Heart, Activity, 
 } from 'lucide-react';
 
 interface PatientProfileProps {

@@ -1,59 +1,69 @@
-import { useState, useCallback, useEffect } from 'react';
+// hooks/useTranslation.ts
+import { useState, useCallback } from 'react';
+import { create } from 'zustand';
 import { translateText } from '../services/i18n/translator';
 import { supportedLanguages } from '../services/i18n/languages';
-import { Language } from '../types/i18n';
+import { Language, TranslationError } from '../types/i18n';
+
+interface TranslationStore {
+  currentLanguage: string;
+  isLoading: boolean;
+  error: TranslationError | null;
+  setLanguage: (language: Language) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: TranslationError | null) => void;
+}
+
+const useTranslationStore = create<TranslationStore>((set) => ({
+  currentLanguage: localStorage.getItem('preferredLanguage') || 'en',
+  isLoading: false,
+  error: null,
+  setLanguage: (language) => {
+    localStorage.setItem('preferredLanguage', language.code);
+    set({ currentLanguage: language.code });
+  },
+  setLoading: (loading) => set({ isLoading: loading }),
+  setError: (error) => set({ error }),
+}));
 
 export function useTranslation() {
-  const [currentLanguage, setCurrentLanguage] = useState(() => {
-    return localStorage.getItem('preferredLanguage') || 'en';
-  });
+  const { currentLanguage, isLoading, error, setLanguage, setLoading, setError } = useTranslationStore();
+  const [translations] = useState(new Map<string, string>());
 
-  const setLanguage = useCallback((language: Language) => {
-    setCurrentLanguage(language.code);
-    localStorage.setItem('preferredLanguage', language.code);
-  }, []);
-
-  const [translations, setTranslations] = useState<Record<string, string>>({});
-
-  const translate = useCallback((text: string): string => {
+  const translate = useCallback(async (text: string): Promise<string> => {
     if (currentLanguage === 'en') return text;
-    return translations[text] || text;
-  }, [currentLanguage, translations]);
 
-  useEffect(() => {
-    const translateTexts = async () => {
-      const textsToTranslate = Object.keys(translations);
-      if (currentLanguage === 'en' || textsToTranslate.length === 0) return;
-
-      try {
-        const results = await Promise.all(
-          textsToTranslate.map(text => translateText(text, currentLanguage))
-        );
-        const newTranslations = textsToTranslate.reduce((acc, text, index) => {
-          acc[text] = results[index].translatedText;
-          return acc;
-        }, {} as Record<string, string>);
-        setTranslations(newTranslations);
-      } catch (error) {
-        console.error('Translation failed:', error);
-      }
-    };
-
-    translateTexts();
-  }, [currentLanguage]);
-
-  // Sync language with localStorage
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem('preferredLanguage');
-    if (storedLanguage && storedLanguage !== currentLanguage) {
-      setCurrentLanguage(storedLanguage);
+    const cacheKey = `${text}_${currentLanguage}`;
+    if (translations.has(cacheKey)) {
+      return translations.get(cacheKey)!;
     }
-  }, []);
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const result = await translateText(text, currentLanguage);
+      translations.set(cacheKey, result.translatedText);
+
+      return result.translatedText;
+    } catch (err) {
+      const translationError =
+        err instanceof TranslationError
+          ? err
+          : new TranslationError('TRANSLATION_FAILED', 'Failed to translate text');
+      setError(translationError);
+      return text;
+    } finally {
+      setLoading(false);
+    }
+  }, [currentLanguage, setLoading, setError]);
 
   return {
     currentLanguage,
     setLanguage,
     translate,
-    supportedLanguages
+    supportedLanguages,
+    isLoading,
+    error,
   };
 }

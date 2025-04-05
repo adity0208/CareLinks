@@ -1,4 +1,4 @@
-import { BarChart2, TrendingUp, Users, Clock } from 'lucide-react';
+import { Calendar, Users, Syringe, Tent } from 'lucide-react';
 import { AnalyticsData } from '../../types';
 
 interface AnalyticsCardProps {
@@ -7,39 +7,38 @@ interface AnalyticsCardProps {
 
 export default function AnalyticsCard({ data }: AnalyticsCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
       <h2 className="text-lg font-semibold mb-4 flex items-center">
-        <BarChart2 className="w-5 h-5 mr-2 text-blue-600" />
         Performance Metrics
       </h2>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <div className="flex items-center text-blue-600 mb-2">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Follow-up Rate
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="p-4 bg-indigo-50 rounded-lg">
+          <div className="flex items-center text-indigo-600 mb-2">
+            <Calendar className="w-4 h-4 mr-2" />
+            Pending Appointments
           </div>
-          <div className="text-2xl font-bold">{data.followUpRate}%</div>
+          <div className="text-2xl font-bold">{data.pendingAppointments}</div>
         </div>
-        <div className="p-4 bg-green-50 rounded-lg">
-          <div className="flex items-center text-green-600 mb-2">
+        <div className="p-4 bg-emerald-50 rounded-lg">
+          <div className="flex items-center text-emerald-600 mb-2">
             <Users className="w-4 h-4 mr-2" />
-            Patient Satisfaction
+            Total Patients
           </div>
-          <div className="text-2xl font-bold">{data.patientSatisfaction}%</div>
+          <div className="text-2xl font-bold">{data.totalPatients}</div>
         </div>
         <div className="p-4 bg-purple-50 rounded-lg">
           <div className="flex items-center text-purple-600 mb-2">
-            <Clock className="w-4 h-4 mr-2" />
-            Completed Visits
+            <Syringe className="w-4 h-4 mr-2" />
+            Child Vaccinations
           </div>
-          <div className="text-2xl font-bold">{data.completedVisits}</div>
+          <div className="text-2xl font-bold">{data.childVaccinations}</div>
         </div>
-        <div className="p-4 bg-red-50 rounded-lg">
-          <div className="flex items-center text-red-600 mb-2">
-            <Clock className="w-4 h-4 mr-2" />
-            Missed Appointments
+        <div className="p-4 bg-amber-50 rounded-lg">
+          <div className="flex items-center text-amber-600 mb-2">
+            <Tent className="w-4 h-4 mr-2" />
+            Healthcare Camps
           </div>
-          <div className="text-2xl font-bold">{data.missedAppointments}</div>
+          <div className="text-2xl font-bold">{data.healthcareCamps}</div>
         </div>
       </div>
     </div>

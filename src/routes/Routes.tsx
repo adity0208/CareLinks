@@ -6,7 +6,8 @@ import Chat from '../pages/Chat';
 import DataCollection from '../pages/DataCollection';
 import Analytics from '../pages/Analytics';
 import Landing from '../pages/Landing';
-import Collaboration from '../pages/Collaboration'; // Import the Collaboration component
+import Collaboration from '../pages/Collaboration';
+import ChildVaccinationTable from '../pages/ChildVaccinationTable'; // Corrected import
 import { useAuthState } from '../hooks/useAuthState';
 import { firestoreService, PatientData } from '../services/firebase/firestore';
 import { useState } from 'react';
@@ -77,7 +78,11 @@ export default function AppRoutes() {
         />
         <Route
           path="/collaboration"
-          element={user ? <Collaboration /> : <Navigate to="/" replace />} // Add the Collaboration route with auth check
+          element={user ? <Collaboration /> : <Navigate to="/" replace />}
+        />
+        <Route // Corrected route for ChildVaccinationTable
+          path="/child-vaccinations"
+          element={user ? <ChildVaccinationTable /> : <Navigate to="/" replace />}
         />
       </Routes>
     </>

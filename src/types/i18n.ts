@@ -11,10 +11,21 @@ export interface TranslationResponse {
     code: string;
     confidence: number;
   };
+  fromCache?: boolean;
 }
 
 export interface VoiceInputResult {
   transcript: string;
   confidence: number;
   isFinal: boolean;
+}
+
+export class TranslationError extends Error {
+  constructor(
+    public code: 'UNSUPPORTED_LANGUAGE' | 'TRANSLATION_FAILED' | 'NETWORK_ERROR',
+    message: string
+  ) {
+    super(message);
+    this.name = 'TranslationError';
+  }
 }

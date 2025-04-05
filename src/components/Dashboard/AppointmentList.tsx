@@ -1,4 +1,3 @@
-import React from 'react';
 import { Appointment } from '../../types';
 import { Calendar } from 'lucide-react';
 

@@ -4,7 +4,7 @@ import { firestoreService, PatientData, AppointmentData } from '../services/fire
 
 export default function Analytics() {
     const [patientData, setPatientData] = useState<PatientData[]>([]);
-    const [appointmentData, setAppointmentData] = useState<AppointmentData[]>([]);
+    const [, setAppointmentData] = useState<AppointmentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

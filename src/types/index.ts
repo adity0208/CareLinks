@@ -25,10 +25,10 @@ export interface ChatMessage {
 }
 
 export interface AnalyticsData {
-  followUpRate: number;
-  completedVisits: number;
-  missedAppointments: number;
-  patientSatisfaction: number;
+  pendingAppointments: number;
+  totalPatients: number;
+  childVaccinations: number;
+  healthcareCamps: number;
 }
 
 export interface SyncStatus {

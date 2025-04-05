@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { firestoreService, AppointmentData } from '../services/firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
-import { CalendarDays, UserRound, Clock4 } from 'lucide-react'; // Import icons
+import { CalendarDays, UserRound, Clock4 } from 'lucide-react';
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState<AppointmentData[]>([]);
@@ -15,9 +15,10 @@ export default function Appointments() {
         const data = await firestoreService.getAppointmentData();
         const convertedData = data.map((appointment) => ({
           ...appointment,
-          appointmentDate: appointment.appointmentDate instanceof Timestamp
-            ? appointment.appointmentDate.toDate()
-            : appointment.appointmentDate,
+          appointmentDate:
+            appointment.appointmentDate instanceof Timestamp
+              ? appointment.appointmentDate.toDate()
+              : appointment.appointmentDate,
         }));
         setAppointments(convertedData);
         setError(null);
@@ -32,17 +33,21 @@ export default function Appointments() {
     fetchAppointmentData();
   }, []);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <p className="text-lg text-gray-600">Loading appointments...</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg text-gray-600">Loading appointments...</p>
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="flex items-center justify-center h-screen">
-      <p className="text-red-600">Error: {error}</p>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-600">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -67,7 +72,6 @@ export default function Appointments() {
                   <span>Appointment Date</span>
                 </div>
               </th>
-              {/* Add other relevant columns with icons */}
             </tr>
           </thead>
           <tbody>
@@ -83,7 +87,6 @@ export default function Appointments() {
                     day: 'numeric',
                   })}
                 </td>
-                {/* Add other relevant columns data */}
               </tr>
             ))}
           </tbody>

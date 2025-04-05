@@ -1,21 +1,20 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.tsx';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import './index.css';
-import ErrorBoundary from './components/ErrorBoundary';
+import App from './App.tsx';
+import { BrowserRouter } from 'react-router-dom';
+import { FirebaseAppProvider } from 'reactfire';
+import { firebaseConfig } from './config/firebase';
+import { TranslationProvider } from './components/common/TranslationProvider';
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
-
-const root = createRoot(rootElement);
-
-root.render(
-  <StrictMode>
-    <ErrorBoundary>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <FirebaseAppProvider firebaseConfig={firebaseConfig} suspense={true}>
       <BrowserRouter>
-        <App />
+        <TranslationProvider>
+          <App />
+        </TranslationProvider>
       </BrowserRouter>
-    </ErrorBoundary>
-  </StrictMode>
+    </FirebaseAppProvider>
+  </React.StrictMode>
 );

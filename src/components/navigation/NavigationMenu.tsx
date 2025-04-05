@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Users, Calendar, MessageSquare, FileSpreadsheet, BarChart2, UserPlus } from 'lucide-react'; // Import UserPlus
+import { Home, Users, Calendar, MessageSquare, FileSpreadsheet, BarChart2, UserPlus, Syringe } from 'lucide-react'; // Import Syringe for vaccination icon
 import NavigationItem from './NavigationItem';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -22,7 +22,8 @@ export default function NavigationMenu({
     chat: 'Chat',
     dataCollection: 'Data Collection',
     analytics: 'Analytics',
-    collaboration: 'Collaboration' // Add the Collaboration label
+    collaboration: 'Collaboration',
+    childVaccinations: 'Child Vaccinations' // Add Child Vaccinations label
   });
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export default function NavigationMenu({
         chat: await translate('Chat'),
         dataCollection: await translate('Data Collection'),
         analytics: await translate('Analytics'),
-        collaboration: await translate('Collaboration') // Add the Collaboration translation
+        collaboration: await translate('Collaboration'),
+        childVaccinations: await translate('Child Vaccinations') // Add Child Vaccinations translation
       };
       setLabels(translatedLabels);
     };
@@ -49,13 +51,13 @@ export default function NavigationMenu({
     { icon: <MessageSquare className="w-5 h-5" />, label: labels.chat, path: '/chat' },
     { icon: <FileSpreadsheet className="w-5 h-5" />, label: labels.dataCollection, path: '/data-collection' },
     { icon: <BarChart2 className="w-5 h-5" />, label: labels.analytics, path: '/analytics' },
-    { icon: <UserPlus className="w-5 h-5" />, label: labels.collaboration, path: '/collaboration' } // Add the Collaboration item
+    { icon: <UserPlus className="w-5 h-5" />, label: labels.collaboration, path: '/collaboration' },
+    { icon: <Syringe className="w-5 h-5" />, label: labels.childVaccinations, path: '/child-vaccinations' } // Add Child Vaccinations item
   ];
 
   return (
     <aside
-      className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed lg:static lg:translate-x-0 z-20 bg-white shadow-sm h-[calc(100vh-3.5rem)] transition-transform duration-300 ease-in-out w-full max-w-[250px] lg:w-64`}
+      className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed lg:static lg:translate-x-0 z-20 bg-white shadow-sm h-[calc(100vh-3.5rem)] transition-transform duration-300 ease-in-out w-full max-w-[250px] lg:w-64`}
     >
       <nav className="p-4 space-y-1">
         {navItems.map((item) => (
