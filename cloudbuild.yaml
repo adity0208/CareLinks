@@ -1,3 +1,4 @@
+logsBucket: 'gs://${PROJECT_ID}_cloudbuild/logs'
 steps:
   # Build the React application
   - name: 'gcr.io/cloud-builders/npm'
