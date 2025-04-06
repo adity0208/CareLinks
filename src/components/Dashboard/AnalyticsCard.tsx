@@ -1,3 +1,4 @@
+import React from 'react';
 import { Calendar, Users, Syringe, Tent } from 'lucide-react';
 import { AnalyticsData } from '../../types';
 
