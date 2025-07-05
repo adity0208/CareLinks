@@ -5,7 +5,6 @@ CareLinks is a web-based platform designed to empower community health workers (
 
 ## Contributors:  1
 1. [Aditya Kushwaha](#www.linkedin.com/in/aditya-kushwaha-512581259)
-2. [Ketan Agrawal](#www.linkedin.com/in/ketan-agrawal04)
 
 ---
 
