@@ -12,12 +12,12 @@ env_variables:
   VITE_GEMINI_API_KEY: ""
 handlers:
   - url: /
-    static_files: build/index.html
-    upload: build/index.html
+    static_files: dist/index.html
+    upload: dist/index.html
 
   - url: /(.*)
-    static_files: build/\1
-    upload: build/(.*)
+    static_files: dist/\1
+    upload: dist/(.*)
 
 automatic_scaling:
   target_cpu_utilization: 0.65

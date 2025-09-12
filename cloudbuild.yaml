@@ -1,4 +1,3 @@
-logsBucket: 'gs://${PROJECT_ID}_cloudbuild/logs'
 steps:
   # Build the React application
   - name: 'gcr.io/cloud-builders/npm'
@@ -17,8 +16,10 @@ steps:
       - 'VITE_GEMINI_API_KEY=${_VITE_GEMINI_API_KEY}'
 
   # Deploy to Google App Engine
-  - name: 'gcr.io/google-cloud-sdk'
-    entrypoint: 'gcloud'
+  - name: 'gcr.io/cloud-builders/gcloud'
     args: ['app', 'deploy']
     env:
-      - 'CLOUDSDK_COMPUTE_REGION=asia-south2' 
+      - 'CLOUDSDK_COMPUTE_REGION=asia-south2'
+
+options:
+  logging: CLOUD_LOGGING_ONLY 
