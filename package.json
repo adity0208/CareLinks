@@ -12,6 +12,7 @@
   "dependencies": {
     "@google-cloud/translate": "^8.5.1",
     "@google/generative-ai": "^0.24.0",
+    "clsx": "^2.1.0",
     "firebase": "^9.0.0",
     "framer-motion": "^12.5.0",
     "lucide-react": "^0.344.0",
