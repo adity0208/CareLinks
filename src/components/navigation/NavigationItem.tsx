@@ -18,14 +18,19 @@ export default function NavigationItem({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center space-x-3 w-full p-3 rounded-lg transition-colors ${
-        isActive
-          ? 'bg-blue-50 text-blue-600'
-          : 'hover:bg-gray-100'
-      }`}
+      className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-all duration-200 group text-left ${isActive
+        ? 'bg-blue-50 text-blue-600 shadow-sm border border-blue-100'
+        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 hover:shadow-sm'
+        }`}
     >
-      {icon}
-      {!isCollapsed && <span>{label}</span>}
+      <div className={`flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`}>
+        {icon}
+      </div>
+      {!isCollapsed && (
+        <span className="ml-3 text-sm font-medium leading-5 min-w-0 flex-1">
+          {label}
+        </span>
+      )}
     </button>
   );
 }

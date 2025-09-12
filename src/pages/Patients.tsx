@@ -9,84 +9,14 @@ import "react-datepicker/dist/react-datepicker.css"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
-// Mock types for the example
-interface PatientData {
-  id: string
-  name: string
-  age: number
-  gender: string
-  mobileNumber?: string
-  notes?: string
-  vitalSigns?: {
-    bloodPressure?: string
-    temperature?: number | string
-    heartRate?: number | string
-  }
-  symptoms?: string[]
-  createdAt?: Date
-}
 
-interface AppointmentData {
-  id: string
-  patientId: string
-  patientName: string
-  appointmentDate: Date
-  createdAt?: Date
-}
 
 interface PatientsProps {
   loading: boolean
   error: string | null
 }
 
-// Mock firestore service
-const firestoreService = {
-  getPatientData: async (): Promise<PatientData[]> => {
-    // Mock data
-    return [
-      {
-        id: "1",
-        name: "John Doe",
-        age: 35,
-        gender: "male",
-        mobileNumber: "9876543210",
-        notes: "Regular checkup needed",
-        vitalSigns: {
-          bloodPressure: "120/80",
-          temperature: 98.6,
-          heartRate: 72,
-        },
-        symptoms: ["fever", "headache"],
-      },
-      {
-        id: "2",
-        name: "Jane Smith",
-        age: 28,
-        gender: "female",
-        mobileNumber: "9876543211",
-        notes: "Follow-up required",
-        vitalSigns: {
-          bloodPressure: "110/70",
-          temperature: 99.1,
-          heartRate: 68,
-        },
-        symptoms: ["cough", "fatigue"],
-      },
-    ]
-  },
-  savePatientData: async (data: Omit<PatientData, "id" | "createdAt">) => {
-    console.log("Saving patient:", data)
-  },
-  updatePatientData: async (id: string, data: Partial<Omit<PatientData, "id" | "createdAt">>) => {
-    console.log("Updating patient:", id, data)
-  },
-  deletePatientData: async (id: string) => {
-    console.log("Deleting patient:", id)
-  },
-  saveAppointmentData: async (data: Omit<AppointmentData, "id" | "createdAt">) => {
-    console.log("Saving appointment:", data)
-  },
-}
+import { PatientData, AppointmentData, firestoreService } from '../services/firebase/firestore'
 
 type NewPatientInput = Omit<PatientData, "id" | "createdAt"> & {
   symptomsInput?: string
@@ -227,9 +157,9 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
       try {
         const symptomsArray = editedPatient.symptomsInput
           ? editedPatient.symptomsInput
-              .split(",")
-              .map((s) => s.trim())
-              .filter((s) => s)
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s)
           : []
 
         const vitalSignsData: { bloodPressure?: string; temperature?: number; heartRate?: number } = {}
@@ -324,9 +254,9 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
     try {
       const symptomsArray = newPatient.symptomsInput
         ? newPatient.symptomsInput
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s)
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
         : []
 
       const vitalSignsData: { bloodPressure?: string; temperature?: number; heartRate?: number } = {}
@@ -836,13 +766,12 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
                             <td className="px-6 py-4 text-slate-600">{patient.age}</td>
                             <td className="px-6 py-4">
                               <span
-                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  patient.gender === "male"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : patient.gender === "female"
-                                      ? "bg-pink-100 text-pink-800"
-                                      : "bg-purple-100 text-purple-800"
-                                }`}
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${patient.gender === "male"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : patient.gender === "female"
+                                    ? "bg-pink-100 text-pink-800"
+                                    : "bg-purple-100 text-purple-800"
+                                  }`}
                               >
                                 {patient.gender}
                               </span>

@@ -3,37 +3,19 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Menu, Bell, Heart, Globe, ChevronDown, X, Calendar, AlertTriangle, CheckCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "../../hooks/useTranslation"
 
-// Mock translation hook (as provided in your original Header.tsx)
-const useTranslation = () => {
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-
-  const translate = useCallback((key: string) => key, []);
-
-  const setLanguage = useCallback((lang: string) => {
-    console.log("Setting language:", lang);
-    setCurrentLanguage(lang);
-  }, []);
-
-  return { translate, currentLanguage, setLanguage };
-};
-
-// LanguageSwitcher component (as provided in your original Header.tsx)
+// LanguageSwitcher component
 interface LanguageSwitcherProps {
   currentLanguage: string;
-  onLanguageChange: (lang: string) => void;
+  supportedLanguages: Array<{ code: string; name: string; nativeName: string }>;
+  onLanguageChange: (lang: any) => void;
 }
 
-const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLanguage, onLanguageChange }) => {
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLanguage, supportedLanguages, onLanguageChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const languages = [
-    { code: "en", name: "English" },
-    { code: "es", name: "Español" },
-    { code: "fr", name: "Français" },
-  ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,26 +42,38 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLanguage, on
       <button
         ref={buttonRef}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center space-x-2 px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+        className="flex items-center space-x-2 px-3 py-2 bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
         <Globe className="w-4 h-4 text-slate-600" />
-        <span className="text-sm font-medium text-slate-700">{currentLanguage.toUpperCase()}</span>
-        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
+        <span className="text-sm font-medium text-slate-700 hidden sm:inline">
+          {supportedLanguages.find(lang => lang.code === currentLanguage)?.name || currentLanguage.toUpperCase()}
+        </span>
+        <span className="text-sm font-medium text-slate-700 sm:hidden">
+          {currentLanguage.toUpperCase()}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
       </button>
       {isOpen && (
-        <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 overflow-hidden z-50">
-          {languages.map((lang) => (
+        <div ref={dropdownRef} className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          {supportedLanguages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => {
-                onLanguageChange(lang.code);
+                onLanguageChange(lang);
                 setIsOpen(false);
               }}
-              className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50/80 transition-colors duration-200 flex items-center space-x-2"
+              className={`w-full text-left px-4 py-3 text-sm transition-colors duration-200 flex items-center justify-between hover:bg-slate-50/80 ${currentLanguage === lang.code ? 'bg-blue-50/50 text-blue-700' : 'text-slate-700'
+                }`}
             >
-              <span>{lang.name}</span>
+              <div className="flex flex-col">
+                <span className="font-medium">{lang.name}</span>
+                <span className="text-xs text-slate-500">{lang.nativeName}</span>
+              </div>
+              {currentLanguage === lang.code && (
+                <CheckCircle className="w-4 h-4 text-blue-600" />
+              )}
             </button>
           ))}
         </div>
@@ -131,7 +125,7 @@ const initialNotifications: Notification[] = [
 ];
 
 export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
-  const { translate, currentLanguage, setLanguage } = useTranslation();
+  const { translate, currentLanguage, setLanguage, supportedLanguages } = useTranslation();
   const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
@@ -192,56 +186,61 @@ export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps)
   return (
     <div className="relative">
       {/* Background with gradient */}
-      <div className="fixed top-0 w-full h-20 bg-gradient-to-r from-white/95 via-blue-50/95 to-indigo-50/95 backdrop-blur-xl border-b border-white/20 z-40"></div>
+      <div className="fixed top-0 w-full h-14 bg-gradient-to-r from-white/95 via-blue-50/95 to-indigo-50/95 backdrop-blur-xl border-b border-white/30 z-40 shadow-sm"></div>
 
       <header className="fixed top-0 w-full z-50">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 h-20">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 h-14">
           {/* Left Section */}
           <div className="flex items-center space-x-4">
             {/* Mobile Menu Button */}
             <button
-              // FIX: This is the problematic line. You pass a function to setIsSidebarOpen,
-              // but HeaderProps defines setIsSidebarOpen as expecting a boolean.
-              // We should pass the direct boolean value to toggle it.
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden p-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              className={`lg:hidden p-2 bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${isSidebarOpen ? 'bg-white shadow-xl scale-105' : ''
+                }`}
               aria-label="Toggle navigation"
             >
-              <Menu className="w-5 h-5 text-slate-600" />
+              <Menu className={`w-5 h-5 transition-colors duration-200 ${isSidebarOpen ? 'text-blue-600' : 'text-slate-600'
+                }`} />
             </button>
 
             {/* Logo */}
-            <button onClick={() => navigate("/dashboard")} className="flex items-center space-x-3 group">
+            <button onClick={() => navigate("/dashboard")} className="flex items-center space-x-2 sm:space-x-3 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-200"></div>
-                <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-xl">
-                  <Heart className="w-6 h-6 text-white" />
+                <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 p-1.5 sm:p-2 rounded-xl">
+                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:via-violet-700 group-hover:to-indigo-700 transition-all duration-200">
+              <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:via-violet-700 group-hover:to-indigo-700 transition-all duration-200">
                 CareLink
               </span>
             </button>
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Language Switcher */}
-            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={setLanguage} />
+            <LanguageSwitcher
+              currentLanguage={currentLanguage}
+              supportedLanguages={supportedLanguages}
+              onLanguageChange={setLanguage}
+            />
 
             {/* Notifications */}
             <div className="relative">
               <button
                 ref={bellButtonRef}
                 onClick={toggleNotifications}
-                className="relative p-3 bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/90 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                className={`relative p-3 bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${isNotificationsOpen ? 'bg-white shadow-xl scale-105' : ''
+                  }`}
                 aria-label="View notifications"
                 aria-expanded={isNotificationsOpen}
                 aria-haspopup="true"
               >
-                <Bell className="w-5 h-5 text-slate-600" />
+                <Bell className={`w-5 h-5 transition-colors duration-200 ${unreadCount > 0 ? 'text-blue-600' : 'text-slate-600'
+                  }`} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -289,9 +288,8 @@ export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps)
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`px-6 py-4 border-b border-slate-100/50 hover:bg-slate-50/50 transition-colors duration-200 cursor-pointer ${
-                            !notification.read ? "bg-blue-50/30" : ""
-                          }`}
+                          className={`px-6 py-4 border-b border-slate-100/50 hover:bg-slate-50/50 transition-colors duration-200 cursor-pointer ${!notification.read ? "bg-blue-50/30" : ""
+                            }`}
                           onClick={() => markAsRead(notification.id)}
                         >
                           <div className="flex items-start space-x-3">

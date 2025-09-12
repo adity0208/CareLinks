@@ -90,17 +90,76 @@ export default function Analytics() {
 }
 
 function calculateRiskDistribution(patients: PatientData[]): { [key: string]: number } {
+    if (patients.length === 0) {
+        return { high: 0, medium: 0, low: 0 };
+    }
+
+    const riskCounts = { high: 0, medium: 0, low: 0 };
+
+    patients.forEach(patient => {
+        const symptoms = patient.symptoms || [];
+        const vitalSigns = patient.vitalSigns;
+
+        // High risk indicators
+        const highRiskSymptoms = ['chest pain', 'difficulty breathing', 'severe headache', 'high fever'];
+        const hasHighRiskSymptoms = symptoms.some(symptom =>
+            highRiskSymptoms.some(risk => symptom.toLowerCase().includes(risk))
+        );
+
+        // Check vital signs for high risk
+        const hasHighBP = vitalSigns?.bloodPressure &&
+            (vitalSigns.bloodPressure.includes('140') || vitalSigns.bloodPressure.includes('90'));
+        const hasHighTemp = vitalSigns?.temperature &&
+            (typeof vitalSigns.temperature === 'number' ? vitalSigns.temperature > 101 : parseFloat(vitalSigns.temperature) > 101);
+
+        if (hasHighRiskSymptoms || hasHighBP || hasHighTemp) {
+            riskCounts.high++;
+        } else if (symptoms.length > 2 || patient.age > 60) {
+            riskCounts.medium++;
+        } else {
+            riskCounts.low++;
+        }
+    });
+
+    // Convert to percentages
+    const total = patients.length;
     return {
-        high: 30,
-        medium: 40,
-        low: 30,
+        high: Math.round((riskCounts.high / total) * 100),
+        medium: Math.round((riskCounts.medium / total) * 100),
+        low: Math.round((riskCounts.low / total) * 100),
     };
 }
 
 function calculateConditionPrevalence(patients: PatientData[]): { condition: string; count: number }[] {
-    return [
-        { condition: 'Diabetes', count: 15 },
-        { condition: 'Hypertension', count: 20 },
-        { condition: 'Asthma', count: 10 },
-    ];
+    const conditionCounts: { [key: string]: number } = {};
+
+    patients.forEach(patient => {
+        const symptoms = patient.symptoms || [];
+        const notes = patient.notes || '';
+
+        // Common conditions to look for
+        const conditions = [
+            'diabetes', 'hypertension', 'asthma', 'fever', 'cough',
+            'headache', 'chest pain', 'fatigue', 'nausea', 'dizziness'
+        ];
+
+        conditions.forEach(condition => {
+            const hasCondition = symptoms.some(symptom =>
+                symptom.toLowerCase().includes(condition)
+            ) || notes.toLowerCase().includes(condition);
+
+            if (hasCondition) {
+                conditionCounts[condition] = (conditionCounts[condition] || 0) + 1;
+            }
+        });
+    });
+
+    // Convert to array and sort by count
+    return Object.entries(conditionCounts)
+        .map(([condition, count]) => ({
+            condition: condition.charAt(0).toUpperCase() + condition.slice(1),
+            count
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10); // Top 10 conditions
 }

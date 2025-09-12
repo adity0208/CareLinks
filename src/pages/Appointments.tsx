@@ -4,48 +4,8 @@ import { useState, useEffect } from "react"
 import { CalendarDays, UserRound, Clock4, Trash2, Edit, Calendar, Users, Loader } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-
-// Mock types and service for the example
-interface AppointmentData {
-  id: string
-  patientName: string
-  patientId: string
-  appointmentDate: Date
-  createdAt?: Date
-}
-
-// Mock firestore service
-const firestoreService = {
-  getAppointmentData: async (): Promise<AppointmentData[]> => {
-    // Mock data
-    return [
-      {
-        id: "1",
-        patientName: "John Doe",
-        patientId: "patient1",
-        appointmentDate: new Date("2024-01-15T10:00:00"),
-      },
-      {
-        id: "2",
-        patientName: "Jane Smith",
-        patientId: "patient2",
-        appointmentDate: new Date("2024-01-16T14:30:00"),
-      },
-      {
-        id: "3",
-        patientName: "Mike Johnson",
-        patientId: "patient3",
-        appointmentDate: new Date("2024-01-17T09:15:00"),
-      },
-    ]
-  },
-  updateAppointmentData: async (id: string, data: Partial<AppointmentData>) => {
-    console.log("Updating appointment:", id, data)
-  },
-  deleteAppointmentData: async (id: string) => {
-    console.log("Deleting appointment:", id)
-  },
-}
+import { AppointmentData, firestoreService } from '../services/firebase/firestore'
+import { useAppointmentData } from '../hooks/useAppointmentData'
 
 // Mock modal component
 const RescheduleAppointmentModal = ({
@@ -103,29 +63,10 @@ const RescheduleAppointmentModal = ({
 }
 
 export default function Appointments() {
-  const [appointments, setAppointments] = useState<AppointmentData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { appointmentData: appointments, loading, error, refreshAppointments } = useAppointmentData()
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [editingAppointment, setEditingAppointment] = useState<AppointmentData | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchAppointmentData = async () => {
-      setLoading(true)
-      try {
-        const data = await firestoreService.getAppointmentData()
-        setAppointments(data)
-        setError(null)
-      } catch (err: any) {
-        console.error("Error fetching appointment data:", err)
-        setError("Failed to fetch appointment data.")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchAppointmentData()
-  }, [])
 
   const handleRescheduleClick = (appointment: AppointmentData) => {
     setEditingAppointment(appointment)
@@ -135,16 +76,15 @@ export default function Appointments() {
   const handleSaveReschedule = async (updatedAppointment: AppointmentData) => {
     if (!editingAppointment) return
     try {
-      await firestoreService.updateAppointmentData(editingAppointment.id, updatedAppointment)
-      setAppointments((prev) =>
-        prev.map((app) => (app.id === editingAppointment.id ? { ...app, ...updatedAppointment } : app)),
-      )
+      await firestoreService.updateAppointmentData(editingAppointment.id, {
+        appointmentDate: updatedAppointment.appointmentDate
+      })
+      refreshAppointments()
       setIsRescheduleModalOpen(false)
       setEditingAppointment(null)
       toast.success("Appointment rescheduled successfully!")
     } catch (err) {
       console.error("Error rescheduling appointment:", err)
-      setError("Failed to reschedule appointment.")
       toast.error("Failed to reschedule appointment.")
     }
   }
@@ -154,11 +94,10 @@ export default function Appointments() {
       setIsDeleting(id)
       try {
         await firestoreService.deleteAppointmentData(id)
-        setAppointments((prev) => prev.filter((app) => app.id !== id))
+        refreshAppointments()
         toast.success("Appointment deleted successfully!")
       } catch (err) {
         console.error("Error deleting appointment:", err)
-        setError("Failed to delete appointment.")
         toast.error("Failed to delete appointment.")
       } finally {
         setIsDeleting(null)
@@ -303,9 +242,8 @@ export default function Appointments() {
                     return (
                       <tr
                         key={appointment.id}
-                        className={`hover:bg-slate-50/50 transition-colors duration-200 ${
-                          index % 2 === 0 ? "bg-white/50" : "bg-slate-50/30"
-                        } ${isToday ? "border-l-4 border-emerald-500" : ""}`}
+                        className={`hover:bg-slate-50/50 transition-colors duration-200 ${index % 2 === 0 ? "bg-white/50" : "bg-slate-50/30"
+                          } ${isToday ? "border-l-4 border-emerald-500" : ""}`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
@@ -323,18 +261,18 @@ export default function Appointments() {
                             <div className="font-medium text-slate-800">
                               {appointment.appointmentDate instanceof Date
                                 ? appointment.appointmentDate.toLocaleDateString("en-IN", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  })
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })
                                 : "Invalid Date"}
                             </div>
                             <div className="text-sm text-slate-600">
                               {appointment.appointmentDate instanceof Date
                                 ? appointment.appointmentDate.toLocaleTimeString("en-IN", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
                                 : ""}
                             </div>
                             <div className="flex items-center space-x-1">
