@@ -4,17 +4,69 @@ import { ChatMessage, Patient } from '../types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini API
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY');
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
-// Real AI: Chatbot response generation
-export async function generateGeminiResponse(prompt: string): Promise<string> {
+// Healthcare-focused system prompt
+const HEALTHCARE_SYSTEM_PROMPT = `You are CareBot, a helpful healthcare assistant for the CareLinks platform. You provide general health information and guidance but always remind users to consult healthcare professionals for medical advice.
+
+Guidelines:
+- Provide helpful, accurate health information
+- Always emphasize consulting healthcare professionals for medical decisions
+- Be empathetic and supportive
+- Focus on preventive care and wellness
+- If asked about serious symptoms, recommend immediate medical attention
+- Keep responses concise but informative
+- Use a warm, professional tone
+
+Remember: You provide information only, not medical diagnosis or treatment.`;
+
+// Enhanced AI: Healthcare-focused chatbot
+export async function generateGeminiResponse(prompt: string, conversationHistory: ChatMessage[] = []): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-pro',
+      generationConfig: {
+        temperature: 0.7,
+        topP: 0.8,
+        maxOutputTokens: 500,
+      }
+    });
+
+    // Build conversation context
+    const context = conversationHistory
+      .slice(-6) // Last 6 messages for context
+      .map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.message}`)
+      .join('\n');
+
+    const fullPrompt = `${HEALTHCARE_SYSTEM_PROMPT}
+
+Previous conversation:
+${context}
+
+Current user message: ${prompt}
+
+Please respond as CareBot:`;
+
+    const result = await model.generateContent(fullPrompt);
+    const response = result.response.text();
+
+    // Ensure response is healthcare-appropriate
+    if (!response || response.length < 10) {
+      return "I'm here to help with your health questions. Could you please provide more details about what you'd like to know?";
+    }
+
+    return response;
   } catch (error) {
     console.error('Gemini API error:', error);
-    return 'Sorry, I encountered an error. Please try again later.';
+
+    // Provide helpful fallback responses
+    const fallbackResponses = [
+      "I'm experiencing some technical difficulties right now. For immediate health concerns, please contact your healthcare provider or emergency services.",
+      "I'm temporarily unavailable. If you have urgent health questions, please consult with a medical professional.",
+      "Sorry, I'm having trouble connecting right now. For health emergencies, please call emergency services immediately."
+    ];
+
+    return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
   }
 }
 
