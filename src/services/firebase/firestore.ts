@@ -12,6 +12,7 @@ import {
     deleteDoc,
     Timestamp,
 } from 'firebase/firestore';
+import { logger } from '../../utils/logger';
 // import { v4 as uuidv4 } from 'uuid'; // No longer needed for auto-generated IDs
 
 // Patient data structure (as updated in previous step, ensuring optional fields)
@@ -69,7 +70,7 @@ class FirestoreService {
     private readonly VACCINATIONS_COLLECTION = 'vaccinations';
     private readonly APPOINTMENTS_COLLECTION = 'appointments'; // Added for consistency
 
-    private constructor() {}
+    private constructor() { }
 
     public static getInstance(): FirestoreService {
         if (!FirestoreService.instance) {
@@ -78,15 +79,16 @@ class FirestoreService {
         return FirestoreService.instance;
     }
 
-    // Patient functions
-    async savePatientData(data: Omit<PatientData, 'id' | 'createdAt'>): Promise<string> {
+    // Patient functions with user isolation
+    async savePatientData(data: Omit<PatientData, 'id' | 'createdAt'>, userId: string): Promise<string> {
         try {
-            console.log('Attempting to save patient data:', data);
-            const docRef = await addDoc(collection(db, this.PATIENTS_COLLECTION), {
+            logger.info('Attempting to save patient data');
+            const docRef = await addDoc(collection(db, `users/${userId}/${this.PATIENTS_COLLECTION}`), {
                 ...data,
                 createdAt: new Date(),
+                userId, // Add userId for additional security
             });
-            console.log('Patient data saved to Firestore with ID:', docRef.id);
+            logger.info('Patient data saved to Firestore');
             return docRef.id; // Return the Firestore-generated ID
         } catch (error: any) {
             console.error('Error saving patient data to Firestore:', error);
@@ -94,10 +96,13 @@ class FirestoreService {
         }
     }
 
-    async getPatientData(): Promise<PatientData[]> {
+    async getPatientData(userId: string): Promise<PatientData[]> {
         try {
-            console.log('Fetching patient data from Firestore...');
-            const q = query(collection(db, this.PATIENTS_COLLECTION), orderBy('createdAt', 'desc'));
+            logger.info('Fetching patient data from Firestore');
+            const q = query(
+                collection(db, `users/${userId}/${this.PATIENTS_COLLECTION}`),
+                orderBy('createdAt', 'desc')
+            );
             const querySnapshot = await getDocs(q);
 
             const patients: PatientData[] = querySnapshot.docs.map((doc) => {
@@ -116,7 +121,7 @@ class FirestoreService {
                 };
             });
 
-            console.log('Fetched patient data successfully:', patients);
+            logger.debug('Fetched patient data successfully', patients);
             return patients;
         } catch (error: any) {
             console.error('Error fetching patient data from Firestore:', error);
@@ -124,10 +129,10 @@ class FirestoreService {
         }
     }
 
-    async updatePatientData(id: string, data: Partial<Omit<PatientData, 'id' | 'createdAt'>>): Promise<void> {
+    async updatePatientData(id: string, data: Partial<Omit<PatientData, 'id' | 'createdAt'>>, userId: string): Promise<void> {
         try {
             console.log(`Updating patient data with ID: ${id}`, data);
-            const patientDocRef = doc(db, this.PATIENTS_COLLECTION, id);
+            const patientDocRef = doc(db, `users/${userId}/${this.PATIENTS_COLLECTION}`, id);
             await updateDoc(patientDocRef, data);
             console.log('Patient data updated in Firestore:', data);
         } catch (error: any) {
@@ -136,10 +141,10 @@ class FirestoreService {
         }
     }
 
-    async deletePatientData(id: string): Promise<void> {
+    async deletePatientData(id: string, userId: string): Promise<void> {
         try {
             console.log(`Deleting patient data with ID: ${id}`);
-            const patientDocRef = doc(db, this.PATIENTS_COLLECTION, id);
+            const patientDocRef = doc(db, `users/${userId}/${this.PATIENTS_COLLECTION}`, id);
             await deleteDoc(patientDocRef);
             console.log('Patient data deleted from Firestore:', id);
         } catch (error: any) {
@@ -148,11 +153,11 @@ class FirestoreService {
         }
     }
 
-    // Child functions
-    async getChildrenData(): Promise<ChildData[]> {
+    // Child functions with user isolation
+    async getChildrenData(userId: string): Promise<ChildData[]> {
         try {
             console.log('Fetching children data from Firestore...');
-            const q = query(collection(db, this.CHILDREN_COLLECTION));
+            const q = query(collection(db, `users/${userId}/${this.CHILDREN_COLLECTION}`));
             const querySnapshot = await getDocs(q);
 
             const children: ChildData[] = querySnapshot.docs.map((doc) => {
@@ -190,10 +195,10 @@ class FirestoreService {
         }
     }
 
-    async saveChildData(childData: Omit<ChildData, 'childId'>): Promise<string> { // Return string (Firestore ID)
+    async saveChildData(childData: Omit<ChildData, 'childId'>, userId: string): Promise<string> { // Return string (Firestore ID)
         try {
             console.log('Attempting to save child data:', childData);
-            const docRef = await addDoc(collection(db, this.CHILDREN_COLLECTION), childData);
+            const docRef = await addDoc(collection(db, `users/${userId}/${this.CHILDREN_COLLECTION}`), childData);
             console.log('Child data saved to Firestore:', docRef.id);
             return docRef.id; // Return Firestore-generated ID
         } catch (error: any) {
@@ -202,10 +207,10 @@ class FirestoreService {
         }
     }
 
-    async updateChildData(childId: string, data: Partial<Omit<ChildData, 'childId'>>): Promise<void> {
+    async updateChildData(childId: string, data: Partial<Omit<ChildData, 'childId'>>, userId: string): Promise<void> {
         try {
             console.log(`Updating child data with ID: ${childId}`, data);
-            const childDocRef = doc(db, this.CHILDREN_COLLECTION, childId);
+            const childDocRef = doc(db, `users/${userId}/${this.CHILDREN_COLLECTION}`, childId);
             await updateDoc(childDocRef, data);
             console.log('Child data updated in Firestore:', data);
         } catch (error: any) {
@@ -214,10 +219,10 @@ class FirestoreService {
         }
     }
 
-    async deleteChildData(childId: string): Promise<void> {
+    async deleteChildData(childId: string, userId: string): Promise<void> {
         try {
             console.log(`Deleting child data with ID: ${childId}`);
-            const childDocRef = doc(db, this.CHILDREN_COLLECTION, childId);
+            const childDocRef = doc(db, `users/${userId}/${this.CHILDREN_COLLECTION}`, childId);
             await deleteDoc(childDocRef);
             console.log('Child data deleted from Firestore:', childId);
         } catch (error: any) {
@@ -226,11 +231,11 @@ class FirestoreService {
         }
     }
 
-    // Appointment functions
-    async getAppointmentData(): Promise<AppointmentData[]> {
+    // Appointment functions with user isolation
+    async getAppointmentData(userId: string): Promise<AppointmentData[]> {
         try {
             console.log('Fetching appointment data from Firestore...');
-            const q = query(collection(db, this.APPOINTMENTS_COLLECTION), orderBy('appointmentDate', 'desc'));
+            const q = query(collection(db, `users/${userId}/${this.APPOINTMENTS_COLLECTION}`), orderBy('appointmentDate', 'desc'));
             const querySnapshot = await getDocs(q);
 
             const appointments: AppointmentData[] = querySnapshot.docs.map((doc) => {
@@ -265,10 +270,10 @@ class FirestoreService {
         }
     }
 
-    async saveAppointmentData(data: Omit<AppointmentData, 'id' | 'createdAt'>): Promise<string> {
+    async saveAppointmentData(data: Omit<AppointmentData, 'id' | 'createdAt'>, userId: string): Promise<string> {
         try {
             console.log('Attempting to save appointment data:', data);
-            const docRef = await addDoc(collection(db, this.APPOINTMENTS_COLLECTION), {
+            const docRef = await addDoc(collection(db, `users/${userId}/${this.APPOINTMENTS_COLLECTION}`), {
                 ...data,
                 // Ensure appointmentDate is a Timestamp when saving
                 appointmentDate: Timestamp.fromDate(data.appointmentDate),
@@ -304,17 +309,17 @@ class FirestoreService {
         }
     }
 
-async deleteAppointmentData(id: string): Promise<void> {
-    try {
-        console.log(`Deleting appointment data with ID: ${id}`);
-        const appointmentDocRef = doc(db, this.APPOINTMENTS_COLLECTION, id);
-        await deleteDoc(appointmentDocRef);
-        console.log('Appointment data deleted from Firestore:', id);
-    } catch (error: any) {
-        console.error('Error deleting appointment data from Firestore:', error);
-        throw error;
+    async deleteAppointmentData(id: string): Promise<void> {
+        try {
+            console.log(`Deleting appointment data with ID: ${id}`);
+            const appointmentDocRef = doc(db, this.APPOINTMENTS_COLLECTION, id);
+            await deleteDoc(appointmentDocRef);
+            console.log('Appointment data deleted from Firestore:', id);
+        } catch (error: any) {
+            console.error('Error deleting appointment data from Firestore:', error);
+            throw error;
+        }
     }
-}
 
     // Vaccination functions
     async getVaccinationData(childId: string): Promise<VaccinationData[]> {
@@ -353,71 +358,7 @@ async deleteAppointmentData(id: string): Promise<void> {
         }
     }
 
-    // Analytics functions
-    async getPatientDataForAnalytics(): Promise<PatientData[]> {
-        try {
-            console.log('Fetching patient data for analytics from Firestore...');
-            const patientCollection = collection(db, 'patients');
-            const querySnapshot = await getDocs(query(patientCollection));
-
-            const patients: PatientData[] = querySnapshot.docs.map((doc) => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    name: data.name,
-                    age: data.age,
-                    gender: data.gender,
-                    medicalHistory: data.medicalHistory || [],
-                    symptoms: data.symptoms || [],
-                    vitalSigns: data.vitalSigns || undefined, // Default to undefined if missing
-                    notes: data.notes || '',
-                    mobileNumber: data.mobileNumber || '',
-                };
-            });
-
-            console.log('Fetched patient data for analytics successfully:', patients);
-            return patients;
-        } catch (error: any) {
-            console.error('Error fetching patient data for analytics from Firestore:', error);
-            throw error;
-        }
-    }
-
-    async getAppointmentDataForAnalytics(): Promise<AppointmentData[]> {
-        try {
-            console.log('Fetching appointment data for analytics from Firestore...');
-            const appointmentCollection = collection(db, 'appointments');
-            const querySnapshot = await getDocs(query(appointmentCollection));
-
-            const appointments: AppointmentData[] = querySnapshot.docs.map((doc) => {
-                const data = doc.data();
-                let appointmentDate: Date;
-
-                if (data.appointmentDate instanceof Timestamp) {
-                    appointmentDate = data.appointmentDate.toDate();
-                } else if (data.appointmentDate instanceof Date) {
-                    appointmentDate = data.appointmentDate;
-                } else {
-                    console.error('Invalid appointmentDate format:', data.appointmentDate);
-                    appointmentDate = new Date(); // Fallback
-                }
-
-                return {
-                    id: doc.id,
-                    patientId: data.patientId,
-                    patientName: data.patientName,
-                    appointmentDate: appointmentDate,
-                    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt || undefined,
-                };
-            });
-
-            console.log('Fetched appointment data for analytics successfully:', appointments);
-            return appointments;
-        } catch (error: any) {
-            console.error('Error fetching appointment data for analytics from Firestore:', error);
-            throw error;
-        }
-    }
+    // Analytics functions - now use the regular user-specific methods
 }
 
 export const firestoreService = FirestoreService.getInstance();

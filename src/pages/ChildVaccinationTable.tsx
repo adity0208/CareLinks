@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { firestoreService, ChildData } from "../services/firebase/firestore";
-import { v4 as uuidv4 } from "uuid";
+import { optimizedFirestoreService, ChildData } from "../services/firebase/optimizedFirestore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ChildCard from "../components/Vaccination/ChildCard";
@@ -8,8 +7,10 @@ import html2canvas from "html2canvas";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getVaccineSchedule } from "../utils/vaccineSchedule";
+import { useAuth } from "../contexts/AuthContext";
 
 const ChildVaccinationTable: React.FC = () => {
+    const { currentUser } = useAuth();
     const [childrenData, setChildrenData] = useState<ChildData[]>([]);
     const [newChild, setNewChild] = useState<Partial<ChildData> | null>(null);
     const [editingChildId, setEditingChildId] = useState<string | null>(null);
@@ -20,8 +21,10 @@ const ChildVaccinationTable: React.FC = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!currentUser) return;
+
             try {
-                const data = await firestoreService.getChildrenData();
+                const data = await optimizedFirestoreService.getChildrenData(currentUser.uid);
                 setChildrenData(data);
             } catch (error) {
                 console.error("Error fetching children data:", error);
@@ -29,7 +32,7 @@ const ChildVaccinationTable: React.FC = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [currentUser]);
 
     const handleAddChild = () => {
         setIsAddingNew(true);
@@ -82,8 +85,8 @@ const ChildVaccinationTable: React.FC = () => {
                 weight,
                 height,
             };
-            await firestoreService.saveChildData(childDataToSave);
-            const data = await firestoreService.getChildrenData();
+            await optimizedFirestoreService.saveChildData(childDataToSave, currentUser!.uid);
+            const data = await optimizedFirestoreService.getChildrenData(currentUser!.uid);
             setChildrenData(data);
             setNewChild(null);
             setIsAddingNew(false);
@@ -114,8 +117,8 @@ const ChildVaccinationTable: React.FC = () => {
                 mobileNumber,
             };
 
-            await firestoreService.updateChildData(editingChildId, childDataToUpdate);
-            const data = await firestoreService.getChildrenData();
+            await optimizedFirestoreService.updateChildData(editingChildId, childDataToUpdate, currentUser!.uid);
+            const data = await optimizedFirestoreService.getChildrenData(currentUser!.uid);
             setChildrenData(data);
             setEditingChildId(null);
             setEditedChild(null);
@@ -136,8 +139,8 @@ const ChildVaccinationTable: React.FC = () => {
     const handleDeleteChild = async (childId: string) => {
         if (window.confirm("Are you sure you want to delete this child's record?")) {
             try {
-                await firestoreService.deleteChildData(childId);
-                const data = await firestoreService.getChildrenData();
+                await optimizedFirestoreService.deleteChildData(childId, currentUser!.uid);
+                const data = await optimizedFirestoreService.getChildrenData(currentUser!.uid);
                 setChildrenData(data);
                 toast.success("Child data deleted successfully!");
             } catch (error) {

@@ -1,40 +1,14 @@
 import { BarChart2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { firestoreService, PatientData, AppointmentData } from '../services/firebase/firestore';
+import { usePatientData } from '../hooks/usePatientData';
 
 export default function Analytics() {
-    const [patientData, setPatientData] = useState<PatientData[]>([]);
-    const [, setAppointmentData] = useState<AppointmentData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const patients = await firestoreService.getPatientDataForAnalytics();
-                setPatientData(patients);
-
-                const appointments = await firestoreService.getAppointmentDataForAnalytics();
-                setAppointmentData(appointments);
-
-                setError(null);
-            } catch (err: any) {
-                console.error('Error fetching data:', err);
-                setError('Failed to fetch data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
+    const { patientData, loading, error } = usePatientData();
 
     if (loading) return <p>Loading analytics data...</p>;
     if (error) return <p>Error: {error}</p>;
 
-    const riskDistribution = calculateRiskDistribution(patientData);
-    const conditionPrevalence = calculateConditionPrevalence(patientData);
+    const riskDistribution = calculateRiskDistribution(patientData || []);
+    const conditionPrevalence = calculateConditionPrevalence(patientData || []);
 
     return (
         <div className="space-y-6">

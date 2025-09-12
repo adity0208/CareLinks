@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import { CalendarDays, UserRound, Clock4, Trash2, Edit, Calendar, Users, Loader } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { AppointmentData, firestoreService } from '../services/firebase/firestore'
+import { optimizedFirestoreService, AppointmentData } from '../services/firebase/optimizedFirestore'
 import { useAppointmentData } from '../hooks/useAppointmentData'
+import { useAuth } from '../contexts/AuthContext'
 
 // Mock modal component
 const RescheduleAppointmentModal = ({
@@ -63,6 +64,7 @@ const RescheduleAppointmentModal = ({
 }
 
 export default function Appointments() {
+  const { currentUser } = useAuth()
   const { appointmentData: appointments, loading, error, refreshAppointments } = useAppointmentData()
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [editingAppointment, setEditingAppointment] = useState<AppointmentData | null>(null)
@@ -76,9 +78,9 @@ export default function Appointments() {
   const handleSaveReschedule = async (updatedAppointment: AppointmentData) => {
     if (!editingAppointment) return
     try {
-      await firestoreService.updateAppointmentData(editingAppointment.id, {
+      await optimizedFirestoreService.updateAppointmentData(editingAppointment.id, {
         appointmentDate: updatedAppointment.appointmentDate
-      })
+      }, currentUser!.uid)
       refreshAppointments()
       setIsRescheduleModalOpen(false)
       setEditingAppointment(null)
@@ -93,7 +95,7 @@ export default function Appointments() {
     if (window.confirm("Are you sure you want to delete this appointment?")) {
       setIsDeleting(id)
       try {
-        await firestoreService.deleteAppointmentData(id)
+        await optimizedFirestoreService.deleteAppointmentData(id, currentUser!.uid)
         refreshAppointments()
         toast.success("Appointment deleted successfully!")
       } catch (err) {

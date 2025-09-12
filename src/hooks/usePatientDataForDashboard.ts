@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Patient } from '../types';
-import { PatientData, firestoreService } from '../services/firebase/firestore';
+import { optimizedFirestoreService, PatientData } from '../services/firebase/optimizedFirestore';
+import { useAuth } from '../contexts/AuthContext';
 
 // Helper function to convert PatientData to Patient interface
 const convertPatientDataToPatient = (patientData: PatientData): Patient => {
@@ -48,12 +49,19 @@ export const usePatientDataForDashboard = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { currentUser } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!currentUser) {
+                setPatients([]);
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             try {
-                const patientData = await firestoreService.getPatientData();
+                const patientData = await optimizedFirestoreService.getPatientData(currentUser.uid);
                 const convertedPatients = patientData.map(convertPatientDataToPatient);
                 setPatients(convertedPatients);
                 setError(null);
@@ -66,7 +74,7 @@ export const usePatientDataForDashboard = () => {
         };
 
         fetchData();
-    }, []);
+    }, [currentUser]);
 
     return { patients, loading, error };
 };

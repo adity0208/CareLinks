@@ -5,36 +5,30 @@ import Appointments from '../pages/Appointments';
 import Chat from '../pages/Chat';
 import DataCollection from '../pages/DataCollection';
 import Analytics from '../pages/Analytics';
-import Landing from '../pages/Landing';
 import Collaboration from '../pages/Collaboration';
-import ChildVaccinationTable from '../pages/ChildVaccinationTable'; // Corrected import
-import { useAuthState } from '../hooks/useAuthState';
-import { firestoreService, PatientData } from '../services/firebase/firestore';
+import ChildVaccinationTable from '../pages/ChildVaccinationTable';
+import { useAuth } from '../contexts/AuthContext';
+import { optimizedFirestoreService, PatientData } from '../services/firebase/optimizedFirestore';
 import { useState } from 'react';
+import { logger } from '../utils/logger';
 
 export default function AppRoutes() {
-  const { user, loading } = useAuthState();
+  const { currentUser } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handlePatientAdd = async (newPatientData: Omit<PatientData, 'id' | 'createdAt'>) => {
+    if (!currentUser) return;
+
     try {
-      console.log('Adding new patient:', newPatientData);
-      await firestoreService.savePatientData(newPatientData);
-      console.log('Patient data saved successfully!');
+      logger.info('Adding new patient');
+      await optimizedFirestoreService.savePatientData(newPatientData, currentUser.uid);
+      logger.info('Patient data saved successfully');
       setErrorMessage(null);
     } catch (error: any) {
       console.error('Error saving patient data:', error.message);
       setErrorMessage('Failed to save patient data. Please try again.');
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -45,45 +39,15 @@ export default function AppRoutes() {
         </div>
       )}
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route
-          path="/dashboard"
-          element={user ? <Dashboard /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/patients"
-          element={user ? <Patients loading={loading} error={errorMessage} /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/appointments"
-          element={user ? <Appointments /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/chat"
-          element={user ? <Chat /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/data-collection"
-          element={
-            user ? (
-              <DataCollection onPatientAdd={handlePatientAdd} />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/analytics"
-          element={user ? <Analytics /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/collaboration"
-          element={user ? <Collaboration /> : <Navigate to="/" replace />}
-        />
-        <Route // Corrected route for ChildVaccinationTable
-          path="/child-vaccinations"
-          element={user ? <ChildVaccinationTable /> : <Navigate to="/" replace />}
-        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/patients" element={<Patients loading={false} error={errorMessage} />} />
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/data-collection" element={<DataCollection onPatientAdd={handlePatientAdd} />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/collaboration" element={<Collaboration />} />
+        <Route path="/child-vaccinations" element={<ChildVaccinationTable />} />
       </Routes>
     </>
   );

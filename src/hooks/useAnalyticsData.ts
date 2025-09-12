@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AnalyticsData } from '../types';
-import { firestoreService } from '../services/firebase/firestore';
+import { optimizedFirestoreService } from '../services/firebase/optimizedFirestore';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useAnalyticsData = () => {
     const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
@@ -11,16 +12,22 @@ export const useAnalyticsData = () => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { currentUser } = useAuth();
 
     useEffect(() => {
         const fetchAnalyticsData = async () => {
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             try {
-                // Fetch patients and appointments data
+                // Fetch patients and appointments data for the current user
                 const [patients, appointments, children] = await Promise.all([
-                    firestoreService.getPatientDataForAnalytics(),
-                    firestoreService.getAppointmentDataForAnalytics(),
-                    firestoreService.getChildrenData()
+                    optimizedFirestoreService.getPatientData(currentUser.uid),
+                    optimizedFirestoreService.getAppointmentData(currentUser.uid),
+                    optimizedFirestoreService.getChildrenData(currentUser.uid)
                 ]);
 
                 // Calculate pending appointments (future appointments)
@@ -49,7 +56,7 @@ export const useAnalyticsData = () => {
         };
 
         fetchAnalyticsData();
-    }, []);
+    }, [currentUser]);
 
     return { analyticsData, loading, error };
 };

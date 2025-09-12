@@ -16,13 +16,16 @@ interface PatientsProps {
   error: string | null
 }
 
-import { PatientData, AppointmentData, firestoreService } from '../services/firebase/firestore'
+import { optimizedFirestoreService } from '../services/firebase/optimizedFirestore'
+import type { PatientData, AppointmentData } from '../services/firebase/optimizedFirestore'
+import { useAuth } from '../contexts/AuthContext'
 
 type NewPatientInput = Omit<PatientData, "id" | "createdAt"> & {
   symptomsInput?: string
 }
 
 const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: initialError }) => {
+  const { currentUser } = useAuth()
   const [patientData, setPatientData] = useState<PatientData[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filter, setFilter] = useState("")
@@ -58,9 +61,15 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
 
   useEffect(() => {
     const fetchPatientData = async () => {
+      if (!currentUser) {
+        setPatientData([])
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       try {
-        const data = await firestoreService.getPatientData()
+        const data = await optimizedFirestoreService.getPatientData(currentUser.uid)
         setPatientData(data)
         setError(null)
       } catch (err: any) {
@@ -71,7 +80,7 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
       }
     }
     fetchPatientData()
-  }, [refresh])
+  }, [refresh, currentUser])
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value)
@@ -118,7 +127,7 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
         patientName: selectedPatient.name,
         appointmentDate: selectedDate,
       }
-      await firestoreService.saveAppointmentData(appointmentData)
+      await optimizedFirestoreService.saveAppointmentData(appointmentData, currentUser!.uid)
       setRefresh((prev) => !prev)
       setShowDatePicker(false)
       setSelectedPatient(null)
@@ -185,7 +194,7 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
           vitalSigns: Object.keys(vitalSignsData).length > 0 ? vitalSignsData : undefined,
         }
 
-        await firestoreService.updatePatientData(editingPatientId, patientToUpdate)
+        await optimizedFirestoreService.updatePatientData(editingPatientId, patientToUpdate, currentUser!.uid)
         setEditingPatientId(null)
         setEditedPatient(null)
         setRefresh((prev) => !prev)
@@ -200,7 +209,7 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
   const handleDeletePatient = async (patientId: string) => {
     if (window.confirm("Are you sure you want to delete this patient?")) {
       try {
-        await firestoreService.deletePatientData(patientId)
+        await optimizedFirestoreService.deletePatientData(patientId, currentUser!.uid)
         setRefresh((prev) => !prev)
         toast.success("Patient data deleted successfully!")
       } catch (error) {
@@ -282,7 +291,7 @@ const Patients: React.FC<PatientsProps> = ({ loading: initialLoading, error: ini
         vitalSigns: Object.keys(vitalSignsData).length > 0 ? vitalSignsData : undefined,
       }
 
-      await firestoreService.savePatientData(patientToSave)
+      await optimizedFirestoreService.savePatientData(patientToSave, currentUser!.uid)
       setShowAddRow(false)
       setNewPatient({
         name: "",

@@ -25,13 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Check if we're on the landing page
-  const isLandingPage = location.pathname === '/';
-
-  // If we're on the landing page, only render the children without the layout
-  if (isLandingPage) {
-    return <>{children}</>;
-  }
+  // Always render the full layout for authenticated users
 
   return (
     <div className="min-h-screen bg-gray-50">

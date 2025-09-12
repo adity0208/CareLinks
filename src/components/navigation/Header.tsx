@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState, useRef, useEffect, useCallback } from "react"
-import { Menu, Bell, Heart, Globe, ChevronDown, X, Calendar, AlertTriangle, CheckCircle } from "lucide-react"
+import { Menu, Bell, Heart, Globe, ChevronDown, X, Calendar, AlertTriangle, CheckCircle, LogOut, User } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "../../hooks/useTranslation"
+import { useAuth } from "../../contexts/AuthContext"
 
 // LanguageSwitcher component
 interface LanguageSwitcherProps {
@@ -126,8 +127,10 @@ const initialNotifications: Notification[] = [
 
 export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
   const { translate, currentLanguage, setLanguage, supportedLanguages } = useTranslation();
+  const { currentUser, userProfile, logout } = useAuth();
   const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
 
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -324,6 +327,57 @@ export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps)
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center space-x-2 p-2 bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-sm font-medium text-gray-800">{userProfile?.displayName || currentUser?.email}</p>
+                  <p className="text-xs text-gray-500">{userProfile?.clinicName}</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 overflow-hidden z-50">
+                  <div className="p-4 border-b border-gray-100">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{userProfile?.displayName}</p>
+                        <p className="text-sm text-gray-600">{userProfile?.role}</p>
+                        <p className="text-xs text-gray-500">{userProfile?.clinicName}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await logout();
+                          setIsUserMenuOpen(false);
+                        } catch (error) {
+                          console.error('Logout error:', error);
+                        }
+                      }}
+                      className="w-full flex items-center space-x-3 px-3 py-2 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-sm font-medium">Sign Out</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
