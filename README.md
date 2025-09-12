@@ -1,5 +1,5 @@
 # CareLinks  
-CareLinks is a web-based platform designed to empower community health workers (CHWs) by streamlining workflows, improving healthcare accessibility, and fostering better patient outcomes. With features like patient health records, vaccination tracking, regional disease monitoring, and appointment scheduling, CareLinks bridges the gap in resource-constrained communities to provide timely and personalized care.
+CareLinks is a web-based platform designed to empower community health workers (CHWs) by streamlining workflows, improving healthcare accessibility, and fostering better patient outcomes. With features like patient health records, vaccination tracking, regional disease monitoring, and appointment scheduling, CareLinks bridges the gap in resource-constrained communities to provide timely and personalized care. It addresses the high gap in doctor to patient ratio in India. By empowering community healthworker with the help of technology.
 
 ---
 
