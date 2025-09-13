@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import AppRoutes from './routes/Routes';
 import Auth from './pages/Auth';
+import './styles/design-system.css';
 
 function AppContent() {
   const { currentUser, loading } = useAuth();

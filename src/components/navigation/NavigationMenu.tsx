@@ -97,50 +97,72 @@ export default function NavigationMenu({
 
   return (
     <aside
-      className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed lg:static lg:translate-x-0 z-20 bg-white shadow-lg border-r border-gray-100 h-[calc(100vh-3.5rem)] transition-all duration-300 ease-in-out w-full max-w-[280px] lg:w-72 flex-shrink-0`}
+      className={`
+        fixed z-20 top-14 left-0
+        bg-gradient-to-b from-white/95 via-white/90 to-slate-50/95 
+        backdrop-blur-xl shadow-2xl border-r border-white/20 
+        h-[calc(100vh-3.5rem)] w-full max-w-[280px] lg:w-72 flex-shrink-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        transition-transform duration-300 ease-in-out lg:transition-none
+      `}
     >
-      <nav className="p-4 space-y-6 overflow-y-auto h-full nav-scrollbar">
+      {/* Decorative gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-indigo-50/30 pointer-events-none"></div>
+
+      <nav className="relative p-6 space-y-8 overflow-y-auto h-full nav-scrollbar">
         {/* Main Navigation */}
-        <div className="space-y-1">
-          {navItems.filter(item => item.category === 'main').map((item, index) => (
-            <div
+        <div className="space-y-2">
+          {navItems.filter(item => item.category === 'main').map((item) => (
+            <NavigationItem
               key={item.path}
-              className="animate-slideInLeft"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <NavigationItem
-                icon={item.icon}
-                label={item.label}
-                isCollapsed={false}
-                isActive={currentPath === item.path}
-                onClick={() => onNavigate(item.path)}
-              />
-            </div>
+              icon={item.icon}
+              label={item.label}
+              isCollapsed={false}
+              isActive={currentPath === item.path}
+              onClick={() => onNavigate(item.path)}
+            />
           ))}
         </div>
 
-        {/* Tools & Analytics */}
-        <div className="space-y-1">
-          <div className="px-3 py-2 animate-slideInLeft" style={{ animationDelay: '200ms' }}>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Tools & Analytics
-            </h3>
+        {/* Separator */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200/60"></div>
           </div>
-          {navItems.filter(item => item.category === 'tools').map((item, index) => (
-            <div
-              key={item.path}
-              className="animate-slideInLeft"
-              style={{ animationDelay: `${250 + (index * 50)}ms` }}
-            >
-              <NavigationItem
-                icon={item.icon}
-                label={item.label}
-                isCollapsed={false}
-                isActive={currentPath === item.path}
-                onClick={() => onNavigate(item.path)}
-              />
+          <div className="relative flex justify-center">
+            <div className="bg-gradient-to-r from-white via-slate-50 to-white px-4">
+              <div className="w-8 h-px bg-gradient-to-r from-blue-400 to-indigo-400"></div>
             </div>
+          </div>
+        </div>
+
+        {/* Tools & Analytics */}
+        <div className="space-y-2">
+          {navItems.filter(item => item.category === 'tools').map((item) => (
+            <NavigationItem
+              key={item.path}
+              icon={item.icon}
+              label={item.label}
+              isCollapsed={false}
+              isActive={currentPath === item.path}
+              onClick={() => onNavigate(item.path)}
+            />
           ))}
+        </div>
+
+        {/* Bottom decoration */}
+        <div className="pt-8">
+          <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                <div className="w-3 h-3 bg-white rounded-full"></div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-700">Healthcare Hub</p>
+                <p className="text-xs text-slate-500">Modern Interface</p>
+              </div>
+            </div>
+          </div>
         </div>
       </nav>
     </aside>
