@@ -156,15 +156,14 @@ The journey of CareLinks has just begun! Here’s what we plan to achieve next:
 ## Screenshots
 Here's a sneak peek into CareLinks:
 
-![Dashboard Overview](path_to_screenshot.png)
+![Dashboard Overview](screenshots/Dashboar.png)
 *A modern dashboard providing real-time insights into patient records and activity.*
 
-![Patient Management](path_to_screenshot.png)
+![Chatbot](screenshots/Chatbot.png)
 *A simple and intuitive interface for adding and viewing patient details.*
 
-![Vaccination Tracker](path_to_screenshot.png)
+![Vaccination Tracker](screenshots/Vaccination.png)
 *Efficient tracking and scheduling of child vaccinations.*
-(*Replace `path_to_screenshot.png` with the actual path to your images.*)
 
 ---
 
