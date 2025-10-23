@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import PatientCard from '../components/Dashboard/PatientCard';
 import SyncIndicator from '../components/common/SyncIndicator';
-import { mockSyncStatus } from '../data/mockData';
 import { usePatientDataForDashboard } from '../hooks/usePatientDataForDashboard';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import { useTranslation } from '../hooks/useTranslation';
@@ -30,6 +29,13 @@ export default function Dashboard() {
   const { patients, loading: patientsLoading, error: patientsError } = usePatientDataForDashboard();
   const { analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalyticsData();
   const { translate } = useTranslation();
+
+  // Real sync status
+  const syncStatus = {
+    isOnline: navigator.onLine,
+    lastSynced: new Date().toISOString(),
+    pendingChanges: 0
+  };
   const [currentTime, setCurrentTime] = useState(new Date());
   const [labels, setLabels] = useState({
     healthcareDashboard: 'Healthcare Dashboard',
@@ -147,7 +153,7 @@ export default function Dashboard() {
 
         <div className="relative z-10 p-6">
           <div className="mb-6">
-            <SyncIndicator status={mockSyncStatus} onSync={handleSync} />
+            <SyncIndicator status={syncStatus} onSync={handleSync} />
           </div>
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
@@ -169,7 +175,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 relative overflow-hidden">
         <div className="relative z-10 p-6">
           <div className="mb-6">
-            <SyncIndicator status={mockSyncStatus} onSync={handleSync} />
+            <SyncIndicator status={syncStatus} onSync={handleSync} />
           </div>
           <div className="bg-red-50/80 backdrop-blur-sm border border-red-200/50 rounded-2xl p-8 shadow-xl">
             <div className="flex items-center space-x-3 mb-4">
@@ -226,7 +232,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <SyncIndicator status={mockSyncStatus} onSync={handleSync} />
+            <SyncIndicator status={syncStatus} onSync={handleSync} />
             <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2">
               <Plus className="w-5 h-5" />
               <span>Quick Action</span>

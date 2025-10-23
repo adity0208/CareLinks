@@ -1,75 +1,119 @@
-// Application Constants
-export const APP_CONFIG = {
-    name: 'CareLinks',
-    version: '1.0.0',
-    description: 'Healthcare Management System',
-} as const;
+/**
+ * Application constants and error messages
+ */
 
-// API Endpoints
-export const API_ENDPOINTS = {
-    FIREBASE: {
-        PATIENTS: 'patients',
-        APPOINTMENTS: 'appointments',
-        CHILDREN: 'children',
-        VACCINATIONS: 'vaccinations',
-    },
-    GEMINI: {
-        BASE_URL: 'https://generativelanguage.googleapis.com',
-        MODEL: 'gemini-pro',
-    },
-} as const;
-
-// UI Constants
-export const UI_CONSTANTS = {
-    SIDEBAR_WIDTH: 288,
-    HEADER_HEIGHT: 56,
-    MOBILE_BREAKPOINT: 768,
-    ANIMATION_DURATION: 200,
-} as const;
-
-// Healthcare Constants
-export const HEALTHCARE_CONSTANTS = {
-    RISK_LEVELS: ['low', 'medium', 'high'] as const,
-    APPOINTMENT_STATUSES: ['scheduled', 'completed', 'cancelled'] as const,
-    VITAL_SIGNS: {
-        NORMAL_TEMP_RANGE: [97.0, 99.5],
-        NORMAL_HEART_RATE: [60, 100],
-        NORMAL_BP_SYSTOLIC: [90, 140],
-        NORMAL_BP_DIASTOLIC: [60, 90],
-    },
-} as const;
-
-// Validation Constants
-export const VALIDATION = {
-    MIN_AGE: 0,
-    MAX_AGE: 150,
-    MIN_NAME_LENGTH: 2,
-    MAX_NAME_LENGTH: 100,
-    PHONE_REGEX: /^[+]?[\d\s\-\(\)]{10,15}$/,
-    EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-} as const;
-
-// Time Constants
-export const TIME_CONSTANTS = {
-    DEBOUNCE_DELAY: 300,
-    TOAST_DURATION: 3000,
-    SESSION_TIMEOUT: 30 * 60 * 1000, // 30 minutes
-    REFRESH_INTERVAL: 5 * 60 * 1000, // 5 minutes
-} as const;
-
-// Error Messages
 export const ERROR_MESSAGES = {
+    // Generic errors
+    GENERIC_ERROR: 'An unexpected error occurred. Please try again.',
     NETWORK_ERROR: 'Network connection failed. Please check your internet connection.',
+
+    // Authentication errors
     UNAUTHORIZED: 'You are not authorized to perform this action.',
+    INVALID_CREDENTIALS: 'Invalid email or password.',
+    USER_NOT_FOUND: 'No user found with this email address.',
+    EMAIL_ALREADY_EXISTS: 'An account with this email already exists.',
+    WEAK_PASSWORD: 'Password should be at least 6 characters long.',
+
+    // Validation errors
     VALIDATION_FAILED: 'Please check your input and try again.',
-    GENERIC_ERROR: 'Something went wrong. Please try again later.',
+    REQUIRED_FIELD: 'This field is required.',
+    INVALID_EMAIL: 'Please enter a valid email address.',
+    INVALID_PHONE: 'Please enter a valid phone number.',
+
+    // Firebase errors
+    FIREBASE_CONFIG_ERROR: 'Firebase configuration is missing or invalid.',
+    FIRESTORE_ERROR: 'Database operation failed. Please try again.',
+
+    // Patient management errors
+    PATIENT_NOT_FOUND: 'Patient record not found.',
+    PATIENT_SAVE_ERROR: 'Failed to save patient information.',
+
+    // Appointment errors
+    APPOINTMENT_CONFLICT: 'This time slot is already booked.',
+    APPOINTMENT_SAVE_ERROR: 'Failed to save appointment.',
+
+    // File upload errors
+    FILE_TOO_LARGE: 'File size is too large. Maximum size is 5MB.',
+    INVALID_FILE_TYPE: 'Invalid file type. Please upload an image file.',
 } as const;
 
-// Success Messages
-export const SUCCESS_MESSAGES = {
-    PATIENT_CREATED: 'Patient created successfully!',
-    PATIENT_UPDATED: 'Patient updated successfully!',
-    PATIENT_DELETED: 'Patient deleted successfully!',
-    APPOINTMENT_SCHEDULED: 'Appointment scheduled successfully!',
-    DATA_SYNCED: 'Data synchronized successfully!',
+export const APP_CONFIG = {
+    // App metadata
+    APP_NAME: 'CareLinks',
+    APP_VERSION: '1.0.0',
+
+    // Pagination
+    DEFAULT_PAGE_SIZE: 10,
+    MAX_PAGE_SIZE: 100,
+
+    // File upload limits
+    MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+    ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+
+    // Date formats
+    DATE_FORMAT: 'YYYY-MM-DD',
+    DATETIME_FORMAT: 'YYYY-MM-DD HH:mm:ss',
+    DISPLAY_DATE_FORMAT: 'MMM DD, YYYY',
+
+    // Validation rules
+    MIN_PASSWORD_LENGTH: 6,
+    MAX_NAME_LENGTH: 50,
+    MAX_DESCRIPTION_LENGTH: 500,
+} as const;
+
+export const USER_ROLES = {
+    CHW: 'chw',
+    DOCTOR: 'doctor',
+    NURSE: 'nurse',
+    ADMIN: 'admin',
+} as const;
+
+export const APPOINTMENT_STATUS = {
+    SCHEDULED: 'scheduled',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled',
+    NO_SHOW: 'no_show',
+} as const;
+
+export const PATIENT_STATUS = {
+    ACTIVE: 'active',
+    INACTIVE: 'inactive',
+    DISCHARGED: 'discharged',
+} as const;
+
+export const VACCINATION_STATUS = {
+    PENDING: 'pending',
+    COMPLETED: 'completed',
+    OVERDUE: 'overdue',
+    SKIPPED: 'skipped',
+} as const;
+
+// Navigation routes
+export const ROUTES = {
+    HOME: '/',
+    DASHBOARD: '/dashboard',
+    PATIENTS: '/patients',
+    APPOINTMENTS: '/appointments',
+    ANALYTICS: '/analytics',
+    VACCINATIONS: '/vaccinations',
+    PROFILE: '/profile',
+    SETTINGS: '/settings',
+    LOGIN: '/login',
+    REGISTER: '/register',
+} as const;
+
+// Local storage keys
+export const STORAGE_KEYS = {
+    USER_PREFERENCES: 'carelinks_user_preferences',
+    THEME: 'carelinks_theme',
+    LANGUAGE: 'carelinks_language',
+} as const;
+
+// API endpoints (for future use)
+export const API_ENDPOINTS = {
+    PATIENTS: '/api/patients',
+    APPOINTMENTS: '/api/appointments',
+    ANALYTICS: '/api/analytics',
+    VACCINATIONS: '/api/vaccinations',
+    USERS: '/api/users',
 } as const;

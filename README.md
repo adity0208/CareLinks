@@ -96,16 +96,19 @@ We’re proud of the significant milestones achieved during the development of C
 2. **Child Vaccination Records**
    - Built a reliable feature to track and schedule vaccinations, preventing missed immunizations in underprivileged communities.
 
-3. **Seamless Deployment**
+3. **Disease outbreak monitoring**
+   - Built a reliable feature to use analytics dashboard to monitor disease outbreak.
+
+4. **Seamless Deployment**
    - Successfully set up continuous integration and deployment workflows using Firebase Hosting and GitHub Actions.
 
-4. **Improved Collaboration**
+5. **Improved Collaboration**
    - Developed a chat and task management system to enhance teamwork and productivity for NGOs and healthcare staff.
 
-5. **Scalable Architecture**
+6. **Scalable Architecture**
    - Designed a scalable system capable of handling large volumes of patient data as the project grows.
 
-6. **Impact on Pilot Testing**
+7. **Impact on Pilot Testing**
    - Tested CareLinks with local NGOs, receiving positive feedback on usability and its potential to improve healthcare delivery.
 
 ---

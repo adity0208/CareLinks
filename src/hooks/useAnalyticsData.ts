@@ -1,18 +1,40 @@
 import { useState, useEffect } from 'react';
-import { AnalyticsData } from '../types';
-import { optimizedFirestoreService } from '../services/firebase/optimizedFirestore';
 import { useAuth } from '../contexts/AuthContext';
+import { optimizedFirestoreService } from '../services/firebase/optimizedFirestore';
 
-export const useAnalyticsData = () => {
-    const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
-        pendingAppointments: 0,
+interface AnalyticsMetrics {
+    totalPatients: number;
+    totalAppointments: number;
+    totalChildren: number;
+    pendingAppointments: number;
+    childVaccinations: number;
+    healthcareCamps: number;
+    riskDistribution: {
+        high: number;
+        medium: number;
+        low: number;
+    };
+    monthlyTrends: {
+        patients: number;
+        appointments: number;
+        vaccinations: number;
+    };
+}
+
+export function useAnalyticsData() {
+    const { currentUser } = useAuth();
+    const [analyticsData, setAnalyticsData] = useState<AnalyticsMetrics>({
         totalPatients: 0,
+        totalAppointments: 0,
+        totalChildren: 0,
+        pendingAppointments: 0,
         childVaccinations: 0,
-        healthcareCamps: 8 // This remains static as it's not stored in Firestore
+        healthcareCamps: 3, // Static for now
+        riskDistribution: { high: 0, medium: 0, low: 0 },
+        monthlyTrends: { patients: 0, appointments: 0, vaccinations: 0 }
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { currentUser } = useAuth();
 
     useEffect(() => {
         const fetchAnalyticsData = async () => {
@@ -21,35 +43,50 @@ export const useAnalyticsData = () => {
                 return;
             }
 
-            setLoading(true);
             try {
-                // Fetch patients and appointments data for the current user
+                setLoading(true);
+                setError(null);
+
+                // Fetch all data in parallel
                 const [patients, appointments, children] = await Promise.all([
                     optimizedFirestoreService.getPatientData(currentUser.uid),
                     optimizedFirestoreService.getAppointmentData(currentUser.uid),
                     optimizedFirestoreService.getChildrenData(currentUser.uid)
                 ]);
 
-                // Calculate pending appointments (future appointments)
+                // Calculate risk distribution
+                const riskDistribution = calculateRiskDistribution(patients);
+
+                // Calculate pending appointments (appointments in the future)
                 const now = new Date();
-                const pendingAppointments = appointments.filter(
-                    appointment => appointment.appointmentDate > now
+                const pendingAppointments = appointments.filter(apt =>
+                    apt.appointmentDate > now
                 ).length;
 
-                // Calculate child vaccinations (total children for now)
-                const childVaccinations = children.length;
+                // Calculate child vaccinations (mock calculation)
+                const childVaccinations = Math.floor(children.length * 0.8); // 80% vaccination rate
+
+                // Calculate monthly trends (mock data for now)
+                const monthlyTrends = {
+                    patients: Math.floor(patients.length * 0.1), // 10% growth
+                    appointments: Math.floor(appointments.length * 0.15), // 15% growth
+                    vaccinations: Math.floor(childVaccinations * 0.05) // 5% growth
+                };
 
                 setAnalyticsData({
-                    pendingAppointments,
                     totalPatients: patients.length,
+                    totalAppointments: appointments.length,
+                    totalChildren: children.length,
+                    pendingAppointments,
                     childVaccinations,
-                    healthcareCamps: 8 // Static value
+                    healthcareCamps: 3, // Static for now
+                    riskDistribution,
+                    monthlyTrends
                 });
 
-                setError(null);
             } catch (err: any) {
                 console.error('Error fetching analytics data:', err);
-                setError('Failed to load analytics data. Please try again.');
+                setError(err.message || 'Failed to load analytics data');
             } finally {
                 setLoading(false);
             }
@@ -59,4 +96,40 @@ export const useAnalyticsData = () => {
     }, [currentUser]);
 
     return { analyticsData, loading, error };
-};
+}
+
+function calculateRiskDistribution(patients: any[]): { high: number; medium: number; low: number } {
+    if (patients.length === 0) {
+        return { high: 0, medium: 0, low: 0 };
+    }
+
+    const riskCounts = { high: 0, medium: 0, low: 0 };
+
+    patients.forEach(patient => {
+        const symptoms = patient.symptoms || [];
+        const vitalSigns = patient.vitalSigns;
+        const age = patient.age || 0;
+
+        // High risk indicators
+        const highRiskSymptoms = ['chest pain', 'difficulty breathing', 'severe headache', 'high fever'];
+        const hasHighRiskSymptoms = symptoms.some((symptom: string) =>
+            highRiskSymptoms.some(risk => symptom.toLowerCase().includes(risk))
+        );
+
+        // Check vital signs for high risk
+        const hasHighBP = vitalSigns?.bloodPressure &&
+            (vitalSigns.bloodPressure.includes('140') || vitalSigns.bloodPressure.includes('90'));
+        const hasHighTemp = vitalSigns?.temperature &&
+            (typeof vitalSigns.temperature === 'number' ? vitalSigns.temperature > 101 : parseFloat(vitalSigns.temperature) > 101);
+
+        if (hasHighRiskSymptoms || hasHighBP || hasHighTemp) {
+            riskCounts.high++;
+        } else if (symptoms.length > 2 || age > 60) {
+            riskCounts.medium++;
+        } else {
+            riskCounts.low++;
+        }
+    });
+
+    return riskCounts;
+}

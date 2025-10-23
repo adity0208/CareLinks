@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChildData } from "../../services/firebase/firestore";
+import { ChildData } from "../../services/firebase/optimizedFirestore";
 import { Vaccine } from "../../utils/vaccineSchedule";
 
 interface ChildCardProps {
@@ -37,9 +37,8 @@ const ChildCard: React.FC<ChildCardProps> = ({ child, vaccineSchedule, onShareAs
             </div>
             <button
               onClick={() => handleVaccineChange(index)}
-              className={`px-3 py-1 rounded ${
-                vaccineStatus[index] ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
-              }`}
+              className={`px-3 py-1 rounded ${vaccineStatus[index] ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
+                }`}
             >
               {vaccineStatus[index] ? 'Given' : 'Pending'}
             </button>

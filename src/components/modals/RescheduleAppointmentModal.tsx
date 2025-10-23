@@ -1,6 +1,6 @@
 // src/components/modals/RescheduleAppointmentModal.tsx
 import React, { useState } from 'react';
-import { AppointmentData } from '../../services/firebase/firestore'; // Adjust path if needed
+import { AppointmentData } from '../../services/firebase/optimizedFirestore';
 
 interface RescheduleAppointmentModalProps {
     appointment: AppointmentData;

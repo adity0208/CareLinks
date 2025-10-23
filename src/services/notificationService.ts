@@ -29,8 +29,8 @@ class NotificationService {
     private lastCheckTimestamp: Date = new Date();
 
     private constructor() {
-        // Initialize with some mock data for demonstration
-        this.initializeMockData();
+        // Initialize empty notifications array
+        this.notifications = [];
 
         // Start real-time monitoring
         this.startRealTimeMonitoring();
@@ -43,31 +43,7 @@ class NotificationService {
         return NotificationService.instance;
     }
 
-    private initializeMockData() {
-        // Add some initial notifications for demonstration
-        this.notifications = [
-            {
-                id: '1',
-                type: 'high_risk_patient',
-                title: 'High Risk Patient Alert',
-                message: 'Patient John Doe (Age 65) has been flagged as high risk due to elevated blood pressure.',
-                timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-                isRead: false,
-                priority: 'critical',
-                data: { patientId: 'patient_123', patientName: 'John Doe' }
-            },
-            {
-                id: '2',
-                type: 'ngo_registration',
-                title: 'New NGO Registration',
-                message: 'Health for All NGO has registered for collaboration in your area.',
-                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-                isRead: false,
-                priority: 'medium',
-                data: { ngoName: 'Health for All', location: 'Downtown Area' }
-            }
-        ];
-    }
+
 
     private startRealTimeMonitoring() {
         // Check for new data every 30 seconds

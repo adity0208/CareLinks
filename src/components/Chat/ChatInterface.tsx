@@ -1,28 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChatMessage } from '../../types';
-import { Send, Bot, User, AlertCircle, Heart } from 'lucide-react';
-import { generateGeminiResponse } from '../../services/genAI';
+import { Send, Bot, User, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { generateGeminiResponse } from '../../services/genAI/index';
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
+  apiKey?: string;
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   sender: 'bot',
-  message: "Hello! I'm CareBot, your healthcare assistant. I can help with general health questions, wellness tips, and care guidance. How can I assist you today?\n\n⚠️ Remember: For medical emergencies, please call emergency services immediately.",
+  message: "Hello! I'm your AI Health Assistant. I can help with general health questions, wellness tips, and care guidance. How can I assist you today?\n\n⚠️ For medical emergencies, please call emergency services immediately.",
   timestamp: new Date().toISOString()
 };
 
 const QUICK_QUESTIONS = [
   "What are signs of dehydration?",
-  "How to manage stress?",
+  "How to manage fever?",
   "Healthy eating tips",
   "When to see a doctor?",
-  "Exercise for beginners"
+  "Child vaccination schedule"
 ];
 
-export default function ChatInterface({ messages: initialMessages }: ChatInterfaceProps) {
+export default function ChatInterface({ messages: initialMessages, apiKey }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -30,14 +31,14 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSend = async (messageText?: string) => {
-    const text = messageText || newMessage.trim();
-    if (!text) return;
+  const handleSend = async (text?: string) => {
+    const messageText = text || newMessage.trim();
+    if (!messageText || isTyping) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
-      message: text,
+      message: messageText,
       timestamp: new Date().toISOString()
     };
 
@@ -47,7 +48,13 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
     setError(null);
 
     try {
-      const aiMessage = await generateGeminiResponse(text, messages);
+      console.log('🎯 ChatInterface sending request with API key:', {
+        hasApiKey: !!apiKey,
+        keyLength: apiKey ? apiKey.length : 0,
+        keyPreview: apiKey ? apiKey.substring(0, 10) + '...' : 'none'
+      });
+
+      const aiMessage = await generateGeminiResponse(messageText, messages, apiKey);
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
@@ -78,98 +85,59 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 h-[700px] flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-100">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur opacity-75"></div>
-            <div className="relative bg-gradient-to-r from-blue-500 to-indigo-500 p-2 rounded-full">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">CareBot</h2>
-            <p className="text-sm text-gray-600">Your AI Healthcare Assistant</p>
-          </div>
-          <div className="ml-auto">
-            <div className="flex items-center space-x-1 text-green-500">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium">Online</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 h-[700px] flex flex-col overflow-hidden">
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`flex items-start space-x-3 max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+            <div className={`flex items-start space-x-3 max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+              }`}>
               {/* Avatar */}
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${message.sender === 'user'
-                  ? 'bg-blue-500'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500'
+              <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${message.sender === 'user'
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                : 'bg-gradient-to-r from-purple-500 to-pink-500'
                 }`}>
                 {message.sender === 'user' ? (
-                  <User className="w-4 h-4 text-white" />
+                  <User className="w-5 h-5 text-white" />
                 ) : (
-                  <Bot className="w-4 h-4 text-white" />
+                  <Bot className="w-5 h-5 text-white" />
                 )}
               </div>
 
               {/* Message Bubble */}
-              <div
-                className={`p-4 rounded-2xl shadow-sm ${message.sender === 'user'
-                    ? 'bg-blue-500 text-white rounded-br-md'
-                    : 'bg-white text-gray-800 rounded-bl-md border border-gray-100'
-                  }`}
-              >
-                <p className="whitespace-pre-line text-sm leading-relaxed">{message.message}</p>
-                <p className={`text-xs mt-2 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+              <div className={`rounded-2xl px-4 py-3 max-w-full ${message.sender === 'user'
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                : 'bg-gray-50 text-gray-800 border border-gray-100'
+                }`}>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {message.message}
+                </div>
+                <div className={`text-xs mt-2 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
                   {new Date(message.timestamp).toLocaleTimeString([], {
                     hour: '2-digit',
-                    minute: '2-digit',
+                    minute: '2-digit'
                   })}
-                </p>
+                </div>
               </div>
             </div>
           </div>
         ))}
 
-        {/* Quick Questions (show only if no user messages yet) */}
-        {messages.length === 1 && (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600 font-medium">Quick questions to get started:</p>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_QUESTIONS.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleQuickQuestion(question)}
-                  className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-full hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200"
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Typing Indicator */}
         {isTyping && (
           <div className="flex justify-start">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
+            <div className="flex items-start space-x-3 max-w-[85%]">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                <Bot className="w-5 h-5 text-white" />
               </div>
-              <div className="bg-white p-4 rounded-2xl rounded-bl-md shadow-sm border border-gray-100">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3">
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                  <span className="text-sm text-gray-600">AI is thinking...</span>
                 </div>
               </div>
             </div>
@@ -179,9 +147,32 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
         {/* Error Message */}
         {error && (
           <div className="flex justify-center">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-red-500" />
-              <span className="text-sm text-red-700">{error}</span>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center space-x-3 max-w-md">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <div>
+                <p className="text-sm font-medium text-red-800">Something went wrong</p>
+                <p className="text-xs text-red-600">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Questions (show only if no messages yet) */}
+        {messages.length === 1 && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mb-4">Try asking about:</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {QUICK_QUESTIONS.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickQuestion(question)}
+                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs px-3 py-2 rounded-full border border-blue-200 transition-colors"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -189,8 +180,8 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 bg-white border-t border-gray-100">
+      {/* Input Area */}
+      <div className="border-t border-gray-100 bg-white/60 backdrop-blur-sm p-4">
         <div className="flex space-x-3">
           <input
             ref={inputRef}
@@ -198,7 +189,7 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Ask about symptoms, wellness tips, or health guidance..."
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             disabled={isTyping}
           />
@@ -206,16 +197,26 @@ export default function ChatInterface({ messages: initialMessages }: ChatInterfa
             onClick={() => handleSend()}
             disabled={isTyping || !newMessage.trim()}
             className={`px-4 py-3 rounded-xl transition-all duration-200 ${isTyping || !newMessage.trim()
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
               }`}
           >
-            <Send className="w-5 h-5" />
+            {isTyping ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2 text-center">
-          CareBot provides general health information. Always consult healthcare professionals for medical advice.
-        </p>
+
+        <div className="flex items-center justify-center mt-3 space-x-4 text-xs text-gray-500">
+          <div className="flex items-center space-x-1">
+            <Sparkles className="w-3 h-3" />
+            <span>Powered by Google Gemini AI</span>
+          </div>
+          <span>•</span>
+          <span>For general health information only</span>
+        </div>
       </div>
     </div>
   );

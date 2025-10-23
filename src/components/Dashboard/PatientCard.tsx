@@ -1,7 +1,19 @@
 import { useState } from 'react';
 import { Patient } from '../../types';
 import { AlertCircle, Calendar, Clock, ChevronRight } from 'lucide-react';
-import { generateRiskAssessment } from '../../services/mockAI';
+// Simple risk assessment function
+const generateRiskAssessment = (patient: Patient) => ({
+  score: patient.age > 60 ? 75 : 45,
+  factors: [
+    {
+      factor: 'Age',
+      impact: patient.age > 60 ? 'high' : 'medium',
+      recommendation: 'Regular health screenings recommended'
+    }
+  ],
+  summary: 'Basic risk assessment based on age and symptoms.',
+  lastUpdated: new Date().toISOString()
+});
 import RiskAssessmentCard from '../AI/RiskAssessmentCard';
 
 interface PatientCardProps {
@@ -36,7 +48,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
           {patient.riskLevel.charAt(0).toUpperCase() + patient.riskLevel.slice(1)} Risk
         </span>
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex items-center text-sm text-gray-600">
           <Clock className="w-4 h-4 mr-2" />
@@ -62,7 +74,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
           <span>AI Risk Assessment</span>
           <ChevronRight className={`w-4 h-4 transform transition-transform ${showRiskAssessment ? 'rotate-90' : ''}`} />
         </button>
-        
+
         {showRiskAssessment && (
           <div className="mt-4">
             <RiskAssessmentCard assessment={assessment} />

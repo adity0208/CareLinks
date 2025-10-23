@@ -13,7 +13,7 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
         confirmPassword: '',
         displayName: '',
         clinicName: '',
-        role: 'doctor' as 'doctor' | 'nurse' | 'admin'
+        role: 'chw' as 'chw' | 'doctor' | 'nurse' | 'admin'
     });
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
@@ -35,6 +35,11 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
 
         if (formData.password.length < 6) {
             setError('Password must be at least 6 characters');
+            return;
+        }
+
+        if (formData.role !== 'chw') {
+            setError('Currently only Community Health Workers can register. Other roles coming soon!');
             return;
         }
 
@@ -125,7 +130,7 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Role
+                                Professional Role
                             </label>
                             <div className="relative">
                                 <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -136,11 +141,15 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
                                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none"
                                     required
                                 >
-                                    <option value="doctor">Doctor</option>
-                                    <option value="nurse">Nurse</option>
-                                    <option value="admin">Administrator</option>
+                                    <option value="chw">Community Health Worker</option>
+                                    <option value="doctor" disabled>Doctor (Coming Soon)</option>
+                                    <option value="nurse" disabled>Nurse (Coming Soon)</option>
+                                    <option value="admin" disabled>Administrator (Coming Soon)</option>
                                 </select>
                             </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Currently accepting Community Health Workers only. Other roles will be available soon.
+                            </p>
                         </div>
 
                         <div>
@@ -208,8 +217,8 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
                             type="submit"
                             disabled={loading}
                             className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-200 ${loading
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                                 }`}
                         >
                             {loading ? 'Creating Account...' : 'Create Account'}

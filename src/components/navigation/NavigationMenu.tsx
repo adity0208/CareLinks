@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Home, Users, Calendar, MessageSquare, FileSpreadsheet, BarChart2, UserPlus, Syringe } from 'lucide-react';
+import { Home, Users, Calendar, MessageSquare, BarChart2, Syringe, User, LogOut, Settings, Shield } from 'lucide-react';
 import NavigationItem from './NavigationItem';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NavigationMenuProps {
   isSidebarOpen: boolean;
@@ -14,15 +15,15 @@ export default function NavigationMenu({
   currentPath,
   onNavigate
 }: NavigationMenuProps) {
+  const { currentUser, userProfile, logout } = useAuth();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { translate } = useTranslation();
   const [labels, setLabels] = useState({
     dashboard: 'Dashboard',
     patients: 'Patients',
     appointments: 'Appointments',
     chat: 'Chat',
-    dataCollection: 'Data Collection',
     analytics: 'Analytics',
-    collaboration: 'Collaboration',
     childVaccinations: 'Child Vaccinations'
   });
 
@@ -33,9 +34,7 @@ export default function NavigationMenu({
         patients: await translate('Patients'),
         appointments: await translate('Appointments'),
         chat: await translate('Chat'),
-        dataCollection: await translate('Data Collection'),
         analytics: await translate('Analytics'),
-        collaboration: await translate('Collaboration'),
         childVaccinations: await translate('Child Vaccinations')
       };
       setLabels(translatedLabels);
@@ -69,24 +68,14 @@ export default function NavigationMenu({
       path: '/chat',
       category: 'main'
     },
-    {
-      icon: <FileSpreadsheet className="w-5 h-5" />,
-      label: labels.dataCollection,
-      path: '/data-collection',
-      category: 'tools'
-    },
+
     {
       icon: <BarChart2 className="w-5 h-5" />,
       label: labels.analytics,
       path: '/analytics',
       category: 'tools'
     },
-    {
-      icon: <UserPlus className="w-5 h-5" />,
-      label: labels.collaboration,
-      path: '/collaboration',
-      category: 'tools'
-    },
+
     {
       icon: <Syringe className="w-5 h-5" />,
       label: labels.childVaccinations,
@@ -150,18 +139,97 @@ export default function NavigationMenu({
           ))}
         </div>
 
-        {/* Bottom decoration */}
-        <div className="pt-8">
-          <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-full"></div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-700">Healthcare Hub</p>
-                <p className="text-xs text-slate-500">Modern Interface</p>
+        {/* User Profile Section */}
+        <div className="pt-8 mt-auto">
+          <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-sm rounded-2xl border border-white/30 overflow-hidden">
+            {/* Profile Header */}
+            <div
+              className="p-4 cursor-pointer hover:bg-white/20 transition-colors"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">
+                    {userProfile?.displayName || currentUser?.displayName || 'User'}
+                  </p>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <p className="text-xs text-slate-600 capitalize">
+                      {userProfile?.role === 'chw' ? 'Community Health Worker' :
+                        userProfile?.role === 'doctor' ? 'Doctor' :
+                          userProfile?.role === 'nurse' ? 'Nurse' :
+                            userProfile?.role === 'admin' ? 'Administrator' : 'User'}
+                    </p>
+                  </div>
+                </div>
+                <div className={`transform transition-transform ${showProfileMenu ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
+
+            {/* Profile Menu */}
+            {showProfileMenu && (
+              <div className="border-t border-white/20 bg-white/10 backdrop-blur-sm">
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      // Add profile settings navigation here
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-slate-700 hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Profile Settings</span>
+                  </button>
+
+                  {userProfile?.role === 'chw' && (
+                    <div className="px-3 py-2">
+                      <div className="flex items-center space-x-2 text-xs">
+                        <Shield className="w-3 h-3 text-green-600" />
+                        <span className="text-green-700 font-medium">Verified CHW</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {userProfile?.clinicName || 'Healthcare Provider'}
+                      </p>
+                    </div>
+                  )}
+
+                  {userProfile?.role !== 'chw' && (
+                    <div className="px-3 py-2">
+                      <div className="flex items-center space-x-2 text-xs">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span className="text-yellow-700 font-medium">Pending Approval</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Account under review
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="border-t border-white/20 pt-1 mt-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await logout();
+                        } catch (error) {
+                          console.error('Logout error:', error);
+                        }
+                      }}
+                      className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50/50 rounded-lg transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>

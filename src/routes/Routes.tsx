@@ -3,32 +3,15 @@ import Dashboard from '../pages/Dashboard';
 import Patients from '../pages/Patients';
 import Appointments from '../pages/Appointments';
 import Chat from '../pages/Chat';
-import DataCollection from '../pages/DataCollection';
 import Analytics from '../pages/Analytics';
-import Collaboration from '../pages/Collaboration';
 import ChildVaccinationTable from '../pages/ChildVaccinationTable';
+import ProtectedRoute from '../components/common/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
-import { optimizedFirestoreService, PatientData } from '../services/firebase/optimizedFirestore';
 import { useState } from 'react';
-import { logger } from '../utils/logger';
 
 export default function AppRoutes() {
   const { currentUser } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handlePatientAdd = async (newPatientData: Omit<PatientData, 'id' | 'createdAt'>) => {
-    if (!currentUser) return;
-
-    try {
-      logger.info('Adding new patient');
-      await optimizedFirestoreService.savePatientData(newPatientData, currentUser.uid);
-      logger.info('Patient data saved successfully');
-      setErrorMessage(null);
-    } catch (error: any) {
-      console.error('Error saving patient data:', error.message);
-      setErrorMessage('Failed to save patient data. Please try again.');
-    }
-  };
 
   return (
     <>
@@ -40,14 +23,37 @@ export default function AppRoutes() {
       )}
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/patients" element={<Patients loading={false} error={errorMessage} />} />
-        <Route path="/appointments" element={<Appointments />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/data-collection" element={<DataCollection onPatientAdd={handlePatientAdd} />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/collaboration" element={<Collaboration />} />
-        <Route path="/child-vaccinations" element={<ChildVaccinationTable />} />
+        <Route path="/auth" element={<Navigate to="/" replace />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['chw']}>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/patients" element={
+          <ProtectedRoute allowedRoles={['chw']}>
+            <Patients loading={false} error={errorMessage} />
+          </ProtectedRoute>
+        } />
+        <Route path="/appointments" element={
+          <ProtectedRoute allowedRoles={['chw']}>
+            <Appointments />
+          </ProtectedRoute>
+        } />
+        <Route path="/chat" element={
+          <ProtectedRoute allowedRoles={['chw']}>
+            <Chat />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute allowedRoles={['chw']}>
+            <Analytics />
+          </ProtectedRoute>
+        } />
+        <Route path="/child-vaccinations" element={
+          <ProtectedRoute allowedRoles={['chw']}>
+            <ChildVaccinationTable />
+          </ProtectedRoute>
+        } />
       </Routes>
     </>
   );
