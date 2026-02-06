@@ -1,0 +1,59 @@
+# GitHub Actions Workflow for CareLinks with Secret Injection
+# This workflow deploys Firebase Cloud Functions with secure secret management
+
+name: Deploy to Firebase
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Cloud Functions
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install Cloud Functions dependencies
+        run: |
+          cd functions
+          npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Set Firebase secret (Gemini API Key)
+        run: |
+          echo "${{ secrets.GEMINI_API_KEY }}" | firebase functions:secrets:set GEMINI_API_KEY --force
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy to Firebase
+        run: |
+          firebase deploy --only functions,hosting,firestore:rules
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed successfully"
+          echo "📦 Deployed: Cloud Functions, Hosting, Firestore Rules"
+          echo "🔐 Secrets: GEMINI_API_KEY injected securely"

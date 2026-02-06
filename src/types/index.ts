@@ -36,3 +36,23 @@ export interface SyncStatus {
   isOnline: boolean;
   pendingChanges: number;
 }
+
+// Multi-Agent Chat System Types
+export interface VitalSigns {
+  temperature?: number;
+  bloodPressure?: string;
+  heartRate?: number;
+}
+
+export interface PatientExtraction {
+  symptoms: string[];
+  vitals: VitalSigns;
+  riskLevel: 'low' | 'moderate' | 'high' | 'critical';
+  redFlags: string[];
+}
+
+export interface ChatResponse {
+  message: string;
+  extraction: PatientExtraction | null;
+  timestamp: string;
+}

@@ -1,29 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatMessage } from '../../types';
+import { ChatMessage, PatientExtraction } from '../../types';
 import { Send, Bot, User, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
-import { generateGeminiResponse } from '../../services/genAI/index';
+import { sendMessage } from '../../services/chat/chatService';
 
 interface ChatInterfaceProps {
-  messages: ChatMessage[];
-  apiKey?: string;
+  onExtractionUpdate?: (extraction: PatientExtraction) => void;
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   sender: 'bot',
-  message: "Hello! I'm your AI Health Assistant. I can help with general health questions, wellness tips, and care guidance. How can I assist you today?\n\n⚠️ For medical emergencies, please call emergency services immediately.",
+  message: "Hello! I'm your AI Clinical Interviewer. I'll help you gather patient information through a structured conversation. Let's start - what brings the patient in today?\n\n⚠️ For medical emergencies, please call emergency services immediately (108 in India).",
   timestamp: new Date().toISOString()
 };
 
 const QUICK_QUESTIONS = [
-  "What are signs of dehydration?",
-  "How to manage fever?",
-  "Healthy eating tips",
-  "When to see a doctor?",
-  "Child vaccination schedule"
+  "Patient has fever and cough",
+  "Complaining of headache",
+  "Child not eating well",
+  "Elderly patient fell",
+  "Pregnant woman with concerns"
 ];
 
-export default function ChatInterface({ messages: initialMessages, apiKey }: ChatInterfaceProps) {
+export default function ChatInterface({ onExtractionUpdate }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -48,23 +47,30 @@ export default function ChatInterface({ messages: initialMessages, apiKey }: Cha
     setError(null);
 
     try {
-      console.log('🎯 ChatInterface sending request with API key:', {
-        hasApiKey: !!apiKey,
-        keyLength: apiKey ? apiKey.length : 0,
-        keyPreview: apiKey ? apiKey.substring(0, 10) + '...' : 'none'
-      });
+      console.log('🎯 Sending message to Cloud Function...');
 
-      const aiMessage = await generateGeminiResponse(messageText, messages, apiKey);
+      // Call Firebase Cloud Function
+      const response = await sendMessage(messageText, messages);
+
+      console.log('✅ Response received:', response);
+
+      // Update extraction in parent component (sidebar)
+      if (response.extraction && onExtractionUpdate) {
+        onExtractionUpdate(response.extraction);
+      }
+
+      // Add bot message to chat
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        message: aiMessage,
-        timestamp: new Date().toISOString()
+        message: response.message,
+        timestamp: response.timestamp
       };
+
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
       console.error('AI error:', err);
-      setError('Failed to get response. Please try again.');
+      setError('Failed to get response. Please check your connection and try again.');
     } finally {
       setIsTyping(false);
     }

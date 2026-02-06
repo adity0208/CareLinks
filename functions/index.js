@@ -48,3 +48,12 @@ exports.onPatientCreated = onDocumentCreated("patients/{patientId}", (event) => 
     // Future: Send welcome notifications, setup default records, etc.
     return null;
 });
+
+// V2.0: Safety Monitor Agent
+const { analyzePatientSafety } = require("./analyzePatientSafety");
+exports.analyzePatientSafety = analyzePatientSafety;
+
+// V2.1: Secure Multi-Agent Chat System
+const { handleChatSession } = require("./handleChatSession");
+exports.handleChatSession = handleChatSession;
+
