@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import NavigationMenu from './navigation/NavigationMenu';
 import Header from './navigation/Header';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    setIsSidebarOpen(false);
-  };
 
   // Handle sidebar close event
   useEffect(() => {
@@ -44,8 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="relative pt-14 min-h-[calc(100vh-3.5rem)]">
         <NavigationMenu
           isSidebarOpen={isSidebarOpen}
-          currentPath={location.pathname}
-          onNavigate={handleNavigation}
+          onNavigate={() => setIsSidebarOpen(false)}
         />
 
         {/* Main Content */}

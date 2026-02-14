@@ -87,7 +87,7 @@ exports.analyzePatientSafety = onCall(
 
       // Initialize Gemini API
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+       = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       // Construct safety analysis prompt
       const prompt = `You are a medical safety monitoring AI assistant for community health workers.

@@ -131,7 +131,15 @@ function cleanMessage(aiResponse) {
  * @returns {Object} - Contains message, extraction, and timestamp
  */
 exports.handleChatSession = onCall(
-    { secrets: [geminiApiKey] },
+    {
+        secrets: [geminiApiKey],
+        cors: [
+            'https://carelinks-fccc4.web.app',
+            'https://carelinks-fccc4.firebaseapp.com',
+            /localhost:\d+/,
+            /127\.0\.0\.1:\d+/
+        ]
+    },
     async (request) => {
         const { message, conversationHistory = [] } = request.data;
 

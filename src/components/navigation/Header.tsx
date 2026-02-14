@@ -100,10 +100,9 @@ export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps)
 
   return (
     <div className="relative">
-      {/* Background with gradient */}
-      <div className="fixed top-0 w-full h-14 bg-gradient-to-r from-white/95 via-blue-50/95 to-indigo-50/95 backdrop-blur-xl border-b border-white/30 z-40 shadow-sm"></div>
+      {/* Background with gradient - Removed separate div, integrating into header */}
 
-      <header className="fixed top-0 w-full z-50">
+      <header className="sticky top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-indigo-100/50 shadow-sm transition-all duration-300">
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 h-14">
           {/* Left Section */}
           <div className="flex items-center space-x-4">

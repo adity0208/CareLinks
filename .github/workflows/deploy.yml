@@ -41,10 +41,11 @@ jobs:
         run: npm run build
 
       - name: Set Firebase secret (Gemini API Key)
-        run: |
-          echo "${{ secrets.GEMINI_API_KEY }}" | firebase functions:secrets:set GEMINI_API_KEY --force
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          echo "$GEMINI_API_KEY" | firebase functions:secrets:set GEMINI_API_KEY --force
 
       - name: Deploy to Firebase
         run: |

@@ -309,6 +309,34 @@ class OptimizedFirestoreService {
         }
     }
 
+    async updateChildData(childId: string, childData: Partial<Omit<ChildData, 'childId'>>, userId: string): Promise<void> {
+        try {
+            const childDocRef = doc(db, `users/${userId}/${this.CHILDREN_COLLECTION}`, childId);
+            await updateDoc(childDocRef, childData);
+
+            // Invalidate cache
+            this.cache.delete(`children_${userId}`);
+            logger.info('Child data updated successfully');
+        } catch (error: any) {
+            logger.error('Error updating child data', error);
+            throw error;
+        }
+    }
+
+    async deleteChildData(childId: string, userId: string): Promise<void> {
+        try {
+            const childDocRef = doc(db, `users/${userId}/${this.CHILDREN_COLLECTION}`, childId);
+            await deleteDoc(childDocRef);
+
+            // Invalidate cache
+            this.cache.delete(`children_${userId}`);
+            logger.info('Child data deleted successfully');
+        } catch (error: any) {
+            logger.error('Error deleting child data', error);
+            throw error;
+        }
+    }
+
     // Cache management
     clearCache(): void {
         this.cache.clear();

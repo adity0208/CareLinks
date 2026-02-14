@@ -16,7 +16,7 @@ export async function sendMessage(
     conversationHistory: ChatMessage[]
 ): Promise<ChatResponse> {
     try {
-        const functions = getFunctions();
+        const functions = getFunctions(undefined, 'us-central1');
         const handleChatSession = httpsCallable<
             { message: string; conversationHistory: ChatMessage[] },
             ChatResponse
